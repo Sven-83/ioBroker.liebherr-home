@@ -1,6 +1,7 @@
 import { expect } from 'chai';
 import { POLL_DEFAULT_S, pollIntervalSeconds } from './config';
 import { createSalt, deviceKey, isValidSalt } from './device-key';
+import { FailureLog, formatDuration } from './failure-log';
 import { DEVICE_ID_PATTERN, redact, stripLineBreaks } from './redact';
 
 describe('util/redact', () => {
@@ -52,6 +53,24 @@ describe('util/device-key', () => {
         expect(deviceKey('34.916.716.7', 'Wine Cooler!', salt)).to.match(/^winecooler_/);
         expect(deviceKey('34.916.716.7', undefined, salt)).to.match(/^device_/);
         expect(deviceKey('34.916.716.7', '???', salt)).to.match(/^device_/);
+    });
+});
+
+describe('util/failure-log', () => {
+    it('warns once per outage and reports its length on recovery', () => {
+        const log = new FailureLog();
+        expect(log.recovered(0)).to.equal(undefined);
+        expect(log.failed(1_000)).to.equal('warn');
+        expect(log.failed(61_000)).to.equal('debug');
+        expect(log.failed(361_000)).to.equal('debug');
+        expect(log.recovered(601_000)).to.equal(600_000);
+        expect(log.failed(700_000)).to.equal('warn');
+    });
+
+    it('formats durations', () => {
+        expect(formatDuration(45_000)).to.equal('45 s');
+        expect(formatDuration(600_000)).to.equal('10 min');
+        expect(formatDuration(3 * 3_600_000 + 5 * 60_000)).to.equal('3 h 5 min');
     });
 });
 

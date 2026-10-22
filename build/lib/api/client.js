@@ -21,7 +21,9 @@ __export(client_exports, {
   BASE_URL: () => BASE_URL,
   HTTP_TIMEOUT_MS: () => HTTP_TIMEOUT_MS,
   HomeApiClient: () => HomeApiClient,
-  normalizeApiKey: () => normalizeApiKey
+  MAX_RETRY_AFTER_MS: () => MAX_RETRY_AFTER_MS,
+  normalizeApiKey: () => normalizeApiKey,
+  parseRetryAfter: () => parseRetryAfter
 });
 module.exports = __toCommonJS(client_exports);
 var import_redact = require("../util/redact");
@@ -187,13 +189,22 @@ class HomeApiClient {
       throw new import_errors.DeviceUnreachableError();
     }
     if (response.status === 429) {
-      throw new import_errors.RateLimitedError();
+      throw new import_errors.RateLimitedError(parseRetryAfter(response.headers.get("retry-after"), Date.now()));
     }
     if (response.status >= 500) {
       throw new import_errors.ServiceUnavailableError(response.status);
     }
     throw new import_errors.ApiError(`HTTP ${response.status}: ${errorMessage(text)}`, response.status);
   }
+}
+const MAX_RETRY_AFTER_MS = 36e5;
+function parseRetryAfter(header, now) {
+  const value = header == null ? void 0 : header.trim();
+  if (!value) {
+    return void 0;
+  }
+  const ms = /^\d+$/.test(value) ? Number(value) * 1e3 : Date.parse(value) - now;
+  return Number.isFinite(ms) ? Math.min(Math.max(ms, 0), MAX_RETRY_AFTER_MS) : void 0;
 }
 function devicePath(deviceId, prefix = "/v1") {
   if (!import_redact.DEVICE_ID_PATTERN.test(deviceId)) {
@@ -232,6 +243,8 @@ function errorMessage(text) {
   BASE_URL,
   HTTP_TIMEOUT_MS,
   HomeApiClient,
-  normalizeApiKey
+  MAX_RETRY_AFTER_MS,
+  normalizeApiKey,
+  parseRetryAfter
 });
 //# sourceMappingURL=client.js.map

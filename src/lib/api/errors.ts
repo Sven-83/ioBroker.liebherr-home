@@ -37,9 +37,15 @@ export class DeviceUnreachableError extends HomeApiError {
 
 /** HTTP 429 */
 export class RateLimitedError extends HomeApiError {
-    /** Fixed message */
-    public constructor() {
-        super('Liebherr HomeAPI rate limit reached (HTTP 429)');
+    /** Wait time requested by the server (Retry-After), if any */
+    public readonly retryAfterMs: number | undefined;
+
+    /** @param retryAfterMs - Wait time from the Retry-After header */
+    public constructor(retryAfterMs?: number) {
+        super(
+            `Liebherr HomeAPI rate limit reached (HTTP 429)${retryAfterMs !== undefined ? ` - retry after ${Math.ceil(retryAfterMs / 1000)} s` : ''}`,
+        );
+        this.retryAfterMs = retryAfterMs;
     }
 }
 

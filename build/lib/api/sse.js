@@ -20,6 +20,7 @@ var sse_exports = {};
 __export(sse_exports, {
   BACKOFF_MAX_MS: () => BACKOFF_MAX_MS,
   BACKOFF_MIN_MS: () => BACKOFF_MIN_MS,
+  RATE_LIMIT_MIN_MS: () => RATE_LIMIT_MIN_MS,
   STABLE_MS: () => STABLE_MS,
   SseParser: () => SseParser,
   SseStream: () => SseStream,
@@ -31,6 +32,7 @@ const WATCHDOG_MS = 75e3;
 const BACKOFF_MIN_MS = 5e3;
 const BACKOFF_MAX_MS = 3e5;
 const STABLE_MS = 6e4;
+const RATE_LIMIT_MIN_MS = 6e4;
 const MAX_LINE_LENGTH = 1e6;
 class SseParser {
   pending = "";
@@ -109,16 +111,26 @@ class SseStream {
   watchdog;
   retryTimer;
   backoffMs = BACKOFF_MIN_MS;
+  /** Lower bound for the next reconnect (set after HTTP 429, jitter never goes below it) */
+  minDelayMs = 0;
   openedAt;
   running = false;
   queue = Promise.resolve();
-  /** Opens the stream (no-op if running) */
-  start() {
+  /**
+   * Opens the stream (no-op if running).
+   *
+   * @param delayMs - Start delay, spreads the connects of several devices
+   */
+  start(delayMs = 0) {
     if (this.running) {
       return;
     }
     this.running = true;
-    void this.connect();
+    if (delayMs > 0) {
+      this.retryTimer = this.options.scheduler.setTimeout(() => void this.connect(), delayMs);
+    } else {
+      void this.connect();
+    }
   }
   /** Closes the stream for good */
   stop() {
@@ -134,6 +146,7 @@ class SseStream {
     return this.queue;
   }
   async connect() {
+    var _a;
     this.retryTimer = void 0;
     if (!this.running) {
       return;
@@ -162,6 +175,9 @@ class SseStream {
         this.handlers.onKeyRejected();
       } else if (error instanceof import_errors.DeviceUnreachableError) {
         this.handlers.onUnreachable();
+      } else if (error instanceof import_errors.RateLimitedError) {
+        this.minDelayMs = Math.max(RATE_LIMIT_MIN_MS, (_a = error.retryAfterMs) != null ? _a : 0);
+        this.log.debug(`Real-time stream of "${this.label}": ${error.message}`);
       } else if (!(error instanceof import_errors.AbortedError) && this.running) {
         const reason = controller.signal.aborted ? "no data received" : (0, import_errors.describeError)(error);
         this.log.debug(`Real-time stream of "${this.label}" lost: ${reason}`);
@@ -227,7 +243,8 @@ class SseStream {
       this.backoffMs = BACKOFF_MIN_MS;
     }
     this.openedAt = void 0;
-    const delay = Math.round(this.backoffMs * (0.8 + this.random() * 0.4));
+    const delay = Math.max(Math.round(this.backoffMs * (0.8 + this.random() * 0.4)), this.minDelayMs);
+    this.minDelayMs = 0;
     this.backoffMs = Math.min(this.backoffMs * 2, BACKOFF_MAX_MS);
     this.retryTimer = this.options.scheduler.setTimeout(() => void this.connect(), delay);
   }
@@ -236,6 +253,7 @@ class SseStream {
 0 && (module.exports = {
   BACKOFF_MAX_MS,
   BACKOFF_MIN_MS,
+  RATE_LIMIT_MIN_MS,
   STABLE_MS,
   SseParser,
   SseStream,

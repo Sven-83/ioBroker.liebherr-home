@@ -2,7 +2,15 @@ import { expect } from 'chai';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { HomeApiClient, type FetchFn } from './client';
-import { BACKOFF_MIN_MS, SseParser, SseStream, WATCHDOG_MS, type Scheduler, type SseHandlers } from './sse';
+import {
+    BACKOFF_MIN_MS,
+    RATE_LIMIT_MIN_MS,
+    SseParser,
+    SseStream,
+    WATCHDOG_MS,
+    type Scheduler,
+    type SseHandlers,
+} from './sse';
 import type { DeviceControl } from './types';
 
 const FIXTURES = join(__dirname, '..', '..', '..', 'test', 'fixtures');
@@ -216,6 +224,42 @@ describe('api/sse stream', () => {
         await flush();
 
         expect(scheduler.active(0, WATCHDOG_MS - 1).map(t => t.ms)).to.deep.equal([BACKOFF_MIN_MS]);
+        stream.stop();
+    });
+
+    it('waits at least a minute (or Retry-After) after HTTP 429', async () => {
+        let retryAfter = '';
+        const { stream, scheduler } = setup(() =>
+            Promise.resolve(
+                new Response('', { status: 429, headers: retryAfter ? { 'retry-after': retryAfter } : {} }),
+            ),
+        );
+
+        stream.start();
+        await flush();
+        const first = scheduler.active();
+        expect(first.map(t => t.ms)).to.deep.equal([RATE_LIMIT_MIN_MS]);
+
+        retryAfter = '600';
+        scheduler.fire(first[0]);
+        await flush();
+        expect(scheduler.active().map(t => t.ms)).to.deep.equal([600_000]);
+        stream.stop();
+    });
+
+    it('can start delayed', async () => {
+        const urls: string[] = [];
+        const { stream, scheduler } = setup(url => {
+            urls.push(url);
+            return Promise.resolve(new Response('', { status: 404 }));
+        });
+
+        stream.start(1_500);
+        await flush();
+        expect(urls).to.have.length(0);
+        scheduler.fire(scheduler.active(1_500, 1_500)[0]);
+        await flush();
+        expect(urls).to.have.length(1);
         stream.stop();
     });
 

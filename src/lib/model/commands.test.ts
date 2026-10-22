@@ -262,6 +262,18 @@ describe('model/commands', () => {
         ]);
     });
 
+    it('drops waiting commands on stop (adapter unload)', async () => {
+        const cloud = fakeCloud();
+        const { handler, key } = await setup(cloud);
+
+        handler.handle(`${key}.zones.0.setpoint`, 5);
+        handler.stop();
+        handler.handle(`${key}.zones.0.setpoint`, 6);
+        await settle(handler);
+
+        expect(cloud.posts).to.have.length(0);
+    });
+
     it('ignores read-only states and unknown devices', async () => {
         const cloud = fakeCloud();
         const { handler, key, log } = await setup(cloud);

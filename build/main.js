@@ -29,7 +29,10 @@ var import_commands = require("./lib/model/commands");
 var import_device_store = require("./lib/model/device-store");
 var import_config = require("./lib/util/config");
 var import_device_key = require("./lib/util/device-key");
+var import_failure_log = require("./lib/util/failure-log");
 const RETRY_START_S = 60;
+const START_JITTER_MS = 2e3;
+const STREAM_SPACING_MS = 1e3;
 class LiebherrHome extends utils.Adapter {
   client;
   store;
@@ -43,6 +46,8 @@ class LiebherrHome extends utils.Adapter {
   openStreams = /* @__PURE__ */ new Set();
   realtimeState;
   keyRejected = false;
+  unloading = false;
+  failures = new import_failure_log.FailureLog();
   scheduler = {
     setTimeout: (callback, ms) => this.setTimeout(callback, ms),
     clearTimeout: (handle) => this.clearTimeout(handle)
@@ -78,11 +83,16 @@ class LiebherrHome extends utils.Adapter {
     this.client = new import_client.HomeApiClient(apiKey);
     this.store = new import_device_store.DeviceStore(
       {
+        // late stream events and readbacks must not touch the databases after onUnload
         ensureObject: async (id, obj) => {
-          await this.extendObject(id, obj);
+          if (!this.unloading) {
+            await this.extendObject(id, obj);
+          }
         },
         setValue: async (id, value) => {
-          await this.setState(id, value, true);
+          if (!this.unloading) {
+            await this.setState(id, value, true);
+          }
         }
       },
       this.log,
@@ -91,7 +101,7 @@ class LiebherrHome extends utils.Adapter {
     );
     this.commands = new import_commands.CommandHandler(this.client, this.store, this.log, this.scheduler);
     this.subscribeStates("*");
-    await this.poll();
+    this.timer = this.setTimeout(() => void this.poll(), Math.round(Math.random() * START_JITTER_MS));
   }
   /**
    * Commands from ioBroker (ack=false) go to the command handler; it confirms with ack=true.
@@ -110,6 +120,7 @@ class LiebherrHome extends utils.Adapter {
    * With real-time updates enabled the SSE streams deliver changes; polling stays as resync.
    */
   async poll() {
+    var _a;
     this.timer = void 0;
     const { client, store } = this;
     if (!client || !store || this.keyRejected) {
@@ -118,7 +129,10 @@ class LiebherrHome extends utils.Adapter {
     try {
       const devices = await client.getDevices();
       const keys = await store.syncDevices(devices);
-      if (this.connectionState !== true) {
+      const outage = this.failures.recovered(Date.now());
+      if (outage !== void 0) {
+        this.log.info(`Connection to the Liebherr HomeAPI restored after ${(0, import_failure_log.formatDuration)(outage)}`);
+      } else if (this.connectionState !== true) {
         this.log.info(`Connected to the Liebherr HomeAPI, ${devices.length} device(s) found`);
       }
       await this.setConnected(true);
@@ -132,7 +146,7 @@ class LiebherrHome extends utils.Adapter {
       this.retrySeconds = RETRY_START_S;
       this.schedule(this.pollSeconds);
     } catch (error) {
-      if (error instanceof import_errors.AbortedError) {
+      if (error instanceof import_errors.AbortedError || this.unloading) {
         return;
       }
       await this.setConnected(false);
@@ -140,8 +154,11 @@ class LiebherrHome extends utils.Adapter {
         await this.onKeyRejected(error.message);
         return;
       }
-      this.log.warn(`${(0, import_errors.describeError)(error)} - retrying in ${this.retrySeconds} s`);
-      this.schedule(this.retrySeconds);
+      const requested = error instanceof import_errors.RateLimitedError ? Math.ceil(((_a = error.retryAfterMs) != null ? _a : 0) / 1e3) : 0;
+      const delay = Math.max(this.retrySeconds, requested);
+      const level = this.failures.failed(Date.now());
+      this.log[level](`${(0, import_errors.describeError)(error)} - retrying in ${delay} s`);
+      this.schedule(delay);
       this.retrySeconds = Math.min(this.retrySeconds * 2, this.pollSeconds);
     }
   }
@@ -208,6 +225,7 @@ class LiebherrHome extends utils.Adapter {
    */
   syncStreams(client, store, keys) {
     const current = new Set(keys);
+    let started = 0;
     for (const [key, stream] of this.streams) {
       if (!current.has(key)) {
         stream.stop();
@@ -244,7 +262,8 @@ class LiebherrHome extends utils.Adapter {
         { scheduler: this.scheduler }
       );
       this.streams.set(key, stream);
-      stream.start();
+      stream.start(started * STREAM_SPACING_MS + Math.round(Math.random() * 500));
+      started++;
     }
     void this.updateRealtime();
   }
@@ -258,7 +277,7 @@ class LiebherrHome extends utils.Adapter {
   /** info.realtime: true while the streams of all devices are open */
   async updateRealtime() {
     const realtime = this.streams.size > 0 && this.openStreams.size === this.streams.size;
-    if (this.realtimeState !== realtime) {
+    if (this.realtimeState !== realtime && !this.unloading) {
       this.realtimeState = realtime;
       await this.setState("info.realtime", realtime, true);
     }
@@ -292,7 +311,7 @@ class LiebherrHome extends utils.Adapter {
    * @param connected - New connection state
    */
   async setConnected(connected) {
-    if (this.connectionState !== connected) {
+    if (this.connectionState !== connected && !this.unloading) {
       this.connectionState = connected;
       await this.setState("info.connection", connected, true);
     }
@@ -305,6 +324,7 @@ class LiebherrHome extends utils.Adapter {
   onUnload(callback) {
     var _a, _b;
     try {
+      this.unloading = true;
       (_a = this.commands) == null ? void 0 : _a.stop();
       this.stopStreams();
       (_b = this.client) == null ? void 0 : _b.close();

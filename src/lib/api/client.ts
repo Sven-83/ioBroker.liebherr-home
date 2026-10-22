@@ -213,13 +213,33 @@ export class HomeApiClient {
             throw new DeviceUnreachableError();
         }
         if (response.status === 429) {
-            throw new RateLimitedError();
+            throw new RateLimitedError(parseRetryAfter(response.headers.get('retry-after'), Date.now()));
         }
         if (response.status >= 500) {
             throw new ServiceUnavailableError(response.status);
         }
         throw new ApiError(`HTTP ${response.status}: ${errorMessage(text)}`, response.status);
     }
+}
+
+/** Upper bound for a server-requested wait (protects against absurd Retry-After values) */
+export const MAX_RETRY_AFTER_MS = 3_600_000;
+
+/**
+ * Parses a Retry-After header (delay in seconds or HTTP date). Not seen on the real API so far,
+ * but respected if it ever comes.
+ *
+ * @param header - Header value
+ * @param now - Current time (epoch ms)
+ * @returns Wait time in ms (capped at one hour), undefined if missing or invalid
+ */
+export function parseRetryAfter(header: string | null, now: number): number | undefined {
+    const value = header?.trim();
+    if (!value) {
+        return undefined;
+    }
+    const ms = /^\d+$/.test(value) ? Number(value) * 1000 : Date.parse(value) - now;
+    return Number.isFinite(ms) ? Math.min(Math.max(ms, 0), MAX_RETRY_AFTER_MS) : undefined;
 }
 
 /**

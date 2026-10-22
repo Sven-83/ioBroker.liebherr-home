@@ -9,7 +9,7 @@
  */
 
 import type { HomeApiClient } from './client';
-import { AbortedError, DeviceUnreachableError, KeyRejectedError, describeError } from './errors';
+import { AbortedError, DeviceUnreachableError, KeyRejectedError, RateLimitedError, describeError } from './errors';
 import type { DeviceControl } from './types';
 
 /** No data (not even the keep-alive) for this long -> reconnect */
@@ -18,6 +18,8 @@ export const BACKOFF_MIN_MS = 5_000;
 export const BACKOFF_MAX_MS = 300_000;
 /** A connection open this long counts as stable; the next reconnect starts at BACKOFF_MIN_MS again */
 export const STABLE_MS = 60_000;
+/** After HTTP 429 the next attempt waits at least this long */
+export const RATE_LIMIT_MIN_MS = 60_000;
 /** Upper bound for one unfinished line - protects memory against a broken stream */
 const MAX_LINE_LENGTH = 1_000_000;
 
@@ -135,6 +137,8 @@ export class SseStream {
     private watchdog: unknown;
     private retryTimer: unknown;
     private backoffMs = BACKOFF_MIN_MS;
+    /** Lower bound for the next reconnect (set after HTTP 429, jitter never goes below it) */
+    private minDelayMs = 0;
     private openedAt: number | undefined;
     private running = false;
     private queue: Promise<void> = Promise.resolve();
@@ -159,13 +163,21 @@ export class SseStream {
         this.random = options.random ?? Math.random;
     }
 
-    /** Opens the stream (no-op if running) */
-    public start(): void {
+    /**
+     * Opens the stream (no-op if running).
+     *
+     * @param delayMs - Start delay, spreads the connects of several devices
+     */
+    public start(delayMs = 0): void {
         if (this.running) {
             return;
         }
         this.running = true;
-        void this.connect();
+        if (delayMs > 0) {
+            this.retryTimer = this.options.scheduler.setTimeout(() => void this.connect(), delayMs);
+        } else {
+            void this.connect();
+        }
     }
 
     /** Closes the stream for good */
@@ -211,6 +223,9 @@ export class SseStream {
                 this.handlers.onKeyRejected();
             } else if (error instanceof DeviceUnreachableError) {
                 this.handlers.onUnreachable();
+            } else if (error instanceof RateLimitedError) {
+                this.minDelayMs = Math.max(RATE_LIMIT_MIN_MS, error.retryAfterMs ?? 0);
+                this.log.debug(`Real-time stream of "${this.label}": ${error.message}`);
             } else if (!(error instanceof AbortedError) && this.running) {
                 const reason = controller.signal.aborted ? 'no data received' : describeError(error);
                 this.log.debug(`Real-time stream of "${this.label}" lost: ${reason}`);
@@ -284,7 +299,8 @@ export class SseStream {
             this.backoffMs = BACKOFF_MIN_MS;
         }
         this.openedAt = undefined;
-        const delay = Math.round(this.backoffMs * (0.8 + this.random() * 0.4));
+        const delay = Math.max(Math.round(this.backoffMs * (0.8 + this.random() * 0.4)), this.minDelayMs);
+        this.minDelayMs = 0;
         this.backoffMs = Math.min(this.backoffMs * 2, BACKOFF_MAX_MS);
         this.retryTimer = this.options.scheduler.setTimeout(() => void this.connect(), delay);
     }

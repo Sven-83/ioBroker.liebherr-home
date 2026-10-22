@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { HomeApiClient, normalizeApiKey, type FetchFn } from './client';
+import { HomeApiClient, MAX_RETRY_AFTER_MS, normalizeApiKey, parseRetryAfter, type FetchFn } from './client';
 import {
     AbortedError,
     ApiError,
@@ -118,6 +118,24 @@ describe('api/client', () => {
         expect(error).to.be.instanceOf(ApiError);
         expect((error as ApiError).status).to.equal(400);
         expect((error as Error).message).to.equal('HTTP 400: Invalid DeviceId **.***.***.*');
+    });
+
+    it('parses Retry-After as seconds or HTTP date, capped at one hour', () => {
+        const now = Date.UTC(2026, 9, 22, 12, 0, 0);
+        expect(parseRetryAfter('120', now)).to.equal(120_000);
+        expect(parseRetryAfter('Thu, 22 Oct 2026 12:05:00 GMT', now)).to.equal(300_000);
+        expect(parseRetryAfter('999999', now)).to.equal(MAX_RETRY_AFTER_MS);
+        expect(parseRetryAfter('soon', now)).to.equal(undefined);
+        expect(parseRetryAfter(null, now)).to.equal(undefined);
+    });
+
+    it('passes Retry-After of a 429 on', async () => {
+        const fetchFn: FetchFn = () =>
+            Promise.resolve(new Response('', { status: 429, headers: { 'retry-after': '90' } }));
+        const error = await rejection(new HomeApiClient('K', { fetch: fetchFn }).getDevices());
+        expect(error).to.be.instanceOf(RateLimitedError);
+        expect((error as RateLimitedError).retryAfterMs).to.equal(90_000);
+        expect((error as Error).message).to.include('retry after 90 s');
     });
 
     it('maps 429 and 5xx', async () => {

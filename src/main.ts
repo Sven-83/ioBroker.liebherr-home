@@ -5,15 +5,26 @@
 
 import * as utils from '@iobroker/adapter-core';
 import { HomeApiClient, normalizeApiKey } from './lib/api/client';
-import { AbortedError, DeviceUnreachableError, KeyRejectedError, describeError } from './lib/api/errors';
+import {
+    AbortedError,
+    DeviceUnreachableError,
+    KeyRejectedError,
+    RateLimitedError,
+    describeError,
+} from './lib/api/errors';
 import { SseStream, type Scheduler } from './lib/api/sse';
 import { CommandHandler } from './lib/model/commands';
 import { DeviceStore } from './lib/model/device-store';
 import { POLL_DEFAULT_S, pollIntervalSeconds } from './lib/util/config';
 import { createSalt, isValidSalt } from './lib/util/device-key';
+import { FailureLog, formatDuration } from './lib/util/failure-log';
 
 /** First retry after a failed request, doubled up to the polling interval */
 const RETRY_START_S = 60;
+/** Random start delay, so many instances restarting together do not hit the cloud at once */
+const START_JITTER_MS = 2_000;
+/** Spacing between the stream connects of several devices */
+const STREAM_SPACING_MS = 1_000;
 
 class LiebherrHome extends utils.Adapter {
     private client: HomeApiClient | undefined;
@@ -28,6 +39,8 @@ class LiebherrHome extends utils.Adapter {
     private readonly openStreams = new Set<string>();
     private realtimeState: boolean | undefined;
     private keyRejected = false;
+    private unloading = false;
+    private readonly failures = new FailureLog();
     private readonly scheduler: Scheduler = {
         setTimeout: (callback, ms) => this.setTimeout(callback, ms),
         clearTimeout: handle => this.clearTimeout(handle as ioBroker.Timeout | undefined),
@@ -69,11 +82,16 @@ class LiebherrHome extends utils.Adapter {
         this.client = new HomeApiClient(apiKey);
         this.store = new DeviceStore(
             {
+                // late stream events and readbacks must not touch the databases after onUnload
                 ensureObject: async (id, obj) => {
-                    await this.extendObject(id, obj);
+                    if (!this.unloading) {
+                        await this.extendObject(id, obj);
+                    }
                 },
                 setValue: async (id, value) => {
-                    await this.setState(id, value, true);
+                    if (!this.unloading) {
+                        await this.setState(id, value, true);
+                    }
                 },
             },
             this.log,
@@ -82,7 +100,7 @@ class LiebherrHome extends utils.Adapter {
         );
         this.commands = new CommandHandler(this.client, this.store, this.log, this.scheduler);
         this.subscribeStates('*');
-        await this.poll();
+        this.timer = this.setTimeout(() => void this.poll(), Math.round(Math.random() * START_JITTER_MS));
     }
 
     /**
@@ -111,7 +129,10 @@ class LiebherrHome extends utils.Adapter {
         try {
             const devices = await client.getDevices();
             const keys = await store.syncDevices(devices);
-            if (this.connectionState !== true) {
+            const outage = this.failures.recovered(Date.now());
+            if (outage !== undefined) {
+                this.log.info(`Connection to the Liebherr HomeAPI restored after ${formatDuration(outage)}`);
+            } else if (this.connectionState !== true) {
                 this.log.info(`Connected to the Liebherr HomeAPI, ${devices.length} device(s) found`);
             }
             await this.setConnected(true);
@@ -126,7 +147,7 @@ class LiebherrHome extends utils.Adapter {
             this.retrySeconds = RETRY_START_S;
             this.schedule(this.pollSeconds);
         } catch (error) {
-            if (error instanceof AbortedError) {
+            if (error instanceof AbortedError || this.unloading) {
                 return;
             }
             await this.setConnected(false);
@@ -134,8 +155,12 @@ class LiebherrHome extends utils.Adapter {
                 await this.onKeyRejected(error.message);
                 return;
             }
-            this.log.warn(`${describeError(error)} - retrying in ${this.retrySeconds} s`);
-            this.schedule(this.retrySeconds);
+            const requested = error instanceof RateLimitedError ? Math.ceil((error.retryAfterMs ?? 0) / 1000) : 0;
+            const delay = Math.max(this.retrySeconds, requested);
+            // first failure of an outage as warning, repeats only in the debug log
+            const level = this.failures.failed(Date.now());
+            this.log[level](`${describeError(error)} - retrying in ${delay} s`);
+            this.schedule(delay);
             this.retrySeconds = Math.min(this.retrySeconds * 2, this.pollSeconds);
         }
     }
@@ -206,6 +231,7 @@ class LiebherrHome extends utils.Adapter {
      */
     private syncStreams(client: HomeApiClient, store: DeviceStore, keys: string[]): void {
         const current = new Set(keys);
+        let started = 0;
         for (const [key, stream] of this.streams) {
             if (!current.has(key)) {
                 stream.stop();
@@ -242,7 +268,8 @@ class LiebherrHome extends utils.Adapter {
                 { scheduler: this.scheduler },
             );
             this.streams.set(key, stream);
-            stream.start();
+            stream.start(started * STREAM_SPACING_MS + Math.round(Math.random() * 500));
+            started++;
         }
         void this.updateRealtime();
     }
@@ -258,7 +285,7 @@ class LiebherrHome extends utils.Adapter {
     /** info.realtime: true while the streams of all devices are open */
     private async updateRealtime(): Promise<void> {
         const realtime = this.streams.size > 0 && this.openStreams.size === this.streams.size;
-        if (this.realtimeState !== realtime) {
+        if (this.realtimeState !== realtime && !this.unloading) {
             this.realtimeState = realtime;
             await this.setState('info.realtime', realtime, true);
         }
@@ -295,7 +322,7 @@ class LiebherrHome extends utils.Adapter {
      * @param connected - New connection state
      */
     private async setConnected(connected: boolean): Promise<void> {
-        if (this.connectionState !== connected) {
+        if (this.connectionState !== connected && !this.unloading) {
             this.connectionState = connected;
             await this.setState('info.connection', connected, true);
         }
@@ -308,6 +335,7 @@ class LiebherrHome extends utils.Adapter {
      */
     private onUnload(callback: () => void): void {
         try {
+            this.unloading = true;
             this.commands?.stop();
             this.stopStreams();
             this.client?.close();
