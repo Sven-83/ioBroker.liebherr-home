@@ -209,9 +209,12 @@ async function main() {
     say(`Node ${process.version}, ${process.platform}, TTY=${Boolean(process.stdin.isTTY)}, SSE ${SSE_SECONDS} s`);
     const rawKey = process.env.LIEBHERR_API_KEY || (await promptHidden('HomeAPI-Key (Eingabe unsichtbar): '));
     // Strip control chars (e.g. Ctrl+V arriving as \x16 in raw mode) and whitespace
+    // eslint-disable-next-line no-control-regex -- matching control chars is the point here
     const apiKey = rawKey.replace(/[\u0000-\u001f\u007f\s]/g, '');
     masks.push(apiKey, rawKey);
-    say(`Key: Quelle=${process.env.LIEBHERR_API_KEY ? 'env' : 'Prompt'}, Länge roh=${rawKey.length}, bereinigt=${apiKey.length}`);
+    say(
+        `Key: Quelle=${process.env.LIEBHERR_API_KEY ? 'env' : 'Prompt'}, Länge roh=${rawKey.length}, bereinigt=${apiKey.length}`,
+    );
     if (!apiKey) {
         throw new Error('Kein Key eingegeben (nach Bereinigung leer – Einfügen per Rechtsklick versuchen).');
     }
@@ -230,7 +233,8 @@ async function main() {
     masks.push(...anon.secrets);
     const files = { 'devices.json': devicesRes.body };
     const meta = { probedAt: new Date().toISOString(), sseSeconds: SSE_SECONDS, requests: [] };
-    const record = r => meta.requests.push({ path: r.path, status: r.status, ms: r.ms, headers: r.headers, error: r.error });
+    const record = r =>
+        meta.requests.push({ path: r.path, status: r.status, ms: r.ms, headers: r.headers, error: r.error });
     record(devicesRes);
 
     for (const [i, d] of devices.entries()) {
@@ -271,13 +275,17 @@ async function main() {
     files['error-unknown-device.json'] = { status: unknown.status, headers: unknown.headers, body: unknown.body };
     say(`Unbekanntes Gerät → ${unknown.status}`);
 
-    say(`SSE für ${devices.length} Gerät(e), ${SSE_SECONDS} s … (gern jetzt in der App etwas umschalten, z. B. Party-Mode an/aus)`);
+    say(
+        `SSE für ${devices.length} Gerät(e), ${SSE_SECONDS} s … (gern jetzt in der App etwas umschalten, z. B. Party-Mode an/aus)`,
+    );
     const sse = await Promise.all(
         devices.map(d => captureSse(`/v1/sse/devices/${encodeURIComponent(d.deviceId)}/controls`, apiKey, SSE_SECONDS)),
     );
     sse.forEach((s, i) => {
         files[`device-${i + 1}.sse.json`] = s;
-        say(`  Gerät ${i + 1}: Status ${s.status}, ${s.events.length} Events, ${s.lines.length} Zeilen, Ende: ${s.end}`);
+        say(
+            `  Gerät ${i + 1}: Status ${s.status}, ${s.events.length} Events, ${s.lines.length} Zeilen, Ende: ${s.end}`,
+        );
     });
 
     files['meta.json'] = meta;

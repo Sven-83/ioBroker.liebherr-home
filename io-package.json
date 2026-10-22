@@ -1,0 +1,105 @@
+{
+    "common": {
+        "name": "liebherr-home",
+        "version": "0.0.1",
+        "news": {
+            "0.0.1": {
+                "en": "initial release",
+                "de": "Erstveröffentlichung",
+                "ru": "Начальная версия",
+                "pt": "lançamento inicial",
+                "nl": "Eerste uitgave",
+                "fr": "Première version",
+                "it": "Versione iniziale",
+                "es": "Versión inicial",
+                "pl": "Pierwsze wydanie",
+                "uk": "Початкова версія",
+                "zh-cn": "首次出版"
+            }
+        },
+        "titleLang": {
+            "en": "Liebherr SmartDevice",
+            "de": "Liebherr SmartDevice",
+            "ru": "Смарт-устройство Либхерр",
+            "pt": "Liebherr SmartDevice",
+            "nl": "Liebherr SmartDevice",
+            "fr": "Appareil intelligent Liebherr",
+            "it": "Liebherr SmartDevice",
+            "es": "Dispositivo inteligente Liebherr",
+            "pl": "Inteligentne urządzenie Liebherr",
+            "uk": "Liebherr SmartDevice",
+            "zh-cn": "利勃海尔智能设备"
+        },
+        "desc": {
+            "en": "Liebherr fridges and freezers via the official SmartDevice HomeAPI",
+            "de": "Liebherr-Kühl- und Gefrierschränke über die offizielle SmartDevice HomeAPI",
+            "ru": "Холодильники и морозильники Liebherr через официальный HomeAPI SmartDevice",
+            "pt": "Geladeiras e freezers Liebherr por meio do SmartDevice HomeAPI oficial",
+            "nl": "Liebherr koelkasten en vriezers via de officiële SmartDevice HomeAPI",
+            "fr": "Réfrigérateurs et congélateurs Liebherr via l'API officielle SmartDevice HomeAPI",
+            "it": "Frigoriferi e congelatori Liebherr tramite SmartDevice HomeAPI ufficiale",
+            "es": "Frigoríficos y congeladores Liebherr a través de la SmartDevice HomeAPI oficial",
+            "pl": "Lodówki i zamrażarki Liebherr za pośrednictwem oficjalnego SmartDevice HomeAPI",
+            "uk": "Холодильники та морозильні камери Liebherr через офіційний SmartDevice HomeAPI",
+            "zh-cn": "通过官方 SmartDevice HomeAPI 购买利勃海尔冰箱和冰柜"
+        },
+        "authors": ["Sven-83 <276080681+Sven-83@users.noreply.github.com>"],
+        "keywords": ["liebherr", "smartdevice", "fridge", "freezer", "refrigerator", "homeapi"],
+        "licenseInformation": {
+            "type": "free",
+            "license": "MIT"
+        },
+        "platform": "Javascript/Node.js",
+        "icon": "liebherr-home.png",
+        "enabled": true,
+        "extIcon": "https://raw.githubusercontent.com/Sven-83/ioBroker.liebherr-home/main/admin/liebherr-home.png",
+        "readme": "https://github.com/Sven-83/ioBroker.liebherr-home/blob/main/README.md",
+        "loglevel": "info",
+        "tier": 3,
+        "mode": "daemon",
+        "type": "household",
+        "compact": true,
+        "connectionType": "cloud",
+        "dataSource": "push",
+        "adminUI": {
+            "config": "json"
+        },
+        "dependencies": [
+            {
+                "js-controller": ">=6.0.11"
+            }
+        ],
+        "globalDependencies": [
+            {
+                "admin": ">=7.0.23"
+            }
+        ]
+    },
+    "native": {
+        "apiKey": ""
+    },
+    "objects": [],
+    "instanceObjects": [
+        {
+            "_id": "info",
+            "type": "channel",
+            "common": {
+                "name": "Information"
+            },
+            "native": {}
+        },
+        {
+            "_id": "info.connection",
+            "type": "state",
+            "common": {
+                "role": "indicator.connected",
+                "name": "Device or service connected",
+                "type": "boolean",
+                "read": true,
+                "write": false,
+                "def": false
+            },
+            "native": {}
+        }
+    ]
+}
