@@ -99,7 +99,9 @@ class LiebherrHome extends utils.Adapter {
             { autoDoor: this.config.allowAutoDoor === true },
         );
         this.commands = new CommandHandler(this.client, this.store, this.log, this.scheduler);
-        this.subscribeStates('*');
+        // only the paths that hold writable states (zones.<n>.*, functions.*)
+        this.subscribeStates('*.zones.*');
+        this.subscribeStates('*.functions.*');
         this.timer = this.setTimeout(() => void this.poll(), Math.round(Math.random() * START_JITTER_MS));
     }
 
@@ -335,6 +337,12 @@ class LiebherrHome extends utils.Adapter {
      */
     private onUnload(callback: () => void): void {
         try {
+            if (this.connectionState === true) {
+                void this.setState('info.connection', false, true);
+            }
+            if (this.realtimeState === true) {
+                void this.setState('info.realtime', false, true);
+            }
             this.unloading = true;
             this.commands?.stop();
             this.stopStreams();

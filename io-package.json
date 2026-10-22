@@ -1,20 +1,20 @@
 {
     "common": {
         "name": "liebherr-home",
-        "version": "0.0.1",
+        "version": "0.1.0",
         "news": {
-            "0.0.1": {
-                "en": "initial release",
-                "de": "Erstveröffentlichung",
-                "ru": "Начальная версия",
-                "pt": "lançamento inicial",
-                "nl": "Eerste uitgave",
-                "fr": "Première version",
-                "it": "Versione iniziale",
-                "es": "Versión inicial",
-                "pl": "Pierwsze wydanie",
-                "uk": "Початкова версія",
-                "zh-cn": "首次出版"
+            "0.1.0": {
+                "en": "First working version: read-only and writable controls, real-time updates via SSE, masked serial numbers",
+                "de": "Erste funktionsfähige Version: lesbare und schreibbare Controls, Echtzeit-Updates per SSE, maskierte Seriennummern",
+                "ru": "Первая рабочая версия: элементы управления только для чтения и записи, обновления в реальном времени через SSE, замаскированные серийные номера.",
+                "pt": "Primeira versão funcional: controles somente leitura e graváveis, atualizações em tempo real via SSE, números de série mascarados",
+                "nl": "Eerste werkende versie: alleen-lezen en beschrijfbare bedieningselementen, realtime updates via SSE, gemaskeerde serienummers",
+                "fr": "Première version fonctionnelle : commandes en lecture seule et en écriture, mises à jour en temps réel via SSE, numéros de série masqués",
+                "it": "Prima versione funzionante: controlli di sola lettura e scrivibili, aggiornamenti in tempo reale tramite SSE, numeri di serie mascherati",
+                "es": "Primera versión funcional: controles de solo lectura y escritura, actualizaciones en tiempo real a través de SSE, números de serie enmascarados",
+                "pl": "Pierwsza działająca wersja: elementy sterujące tylko do odczytu i zapisu, aktualizacje w czasie rzeczywistym za pośrednictwem SSE, maskowane numery seryjne",
+                "uk": "Перша робоча версія: елементи керування лише для читання та запису, оновлення в реальному часі через SSE, замасковані серійні номери",
+                "zh-cn": "第一个工作版本：只读和可写控件，通过 SSE 实时更新，屏蔽序列号"
             }
         },
         "titleLang": {
@@ -64,7 +64,7 @@
         "extIcon": "https://raw.githubusercontent.com/Sven-83/ioBroker.liebherr-home/main/admin/liebherr-home.png",
         "readme": "https://github.com/Sven-83/ioBroker.liebherr-home/blob/main/README.md",
         "loglevel": "info",
-        "tier": 3,
+        "tier": 2,
         "mode": "daemon",
         "type": "household",
         "compact": true,
@@ -80,7 +80,7 @@
         ],
         "globalDependencies": [
             {
-                "admin": ">=7.0.23"
+                "admin": ">=7.6.20"
             }
         ]
     },

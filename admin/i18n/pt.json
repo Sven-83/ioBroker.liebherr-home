@@ -3,7 +3,7 @@
     "Allow opening and closing automatic doors": "Permitir abertura e fechamento de portas automáticas",
     "Commands": "Comandos",
     "Connection": "Conexão",
-    "Create the key in the SmartDevice app under Settings - HomeAPI. It is shown only once.": "Crie a chave no aplicativo SmartDevice em Configurações - HomeAPI. É mostrado apenas uma vez.",
+    "Create the key in the SmartDevice app: Settings - Become a beta tester - Beta testing HomeAPI - Generate new key. It is shown only once; a new key invalidates the old one.": "Crie a chave no aplicativo SmartDevice: Configurações - Torne-se um testador beta - Teste beta HomeAPI - Gere uma nova chave. É mostrado apenas uma vez; uma nova chave invalida a antiga.",
     "Creates a command state per door. The door moves physically - only enable this if nobody can get hurt.": "Cria um estado de comando por porta. A porta se move fisicamente - ative isso apenas se ninguém puder se machucar.",
     "Liebherr SmartDevice": "Liebherr SmartDevice",
     "Please enter the API key": "Por favor insira a chave API",

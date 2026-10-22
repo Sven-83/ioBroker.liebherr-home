@@ -29,7 +29,7 @@ module.exports = __toCommonJS(client_exports);
 var import_redact = require("../util/redact");
 var import_errors = require("./errors");
 const BASE_URL = "https://home-api.smartdevice.liebherr.com";
-const HTTP_TIMEOUT_MS = 15e3;
+const HTTP_TIMEOUT_MS = 1e4;
 function normalizeApiKey(key) {
   return typeof key === "string" ? key.replace(/[\u0000-\u001f\u007f\s]/g, "") : "";
 }

@@ -2,7 +2,6 @@
     "liebherr-home adapter settings": "Adapter settings for liebherr-home",
     "Liebherr SmartDevice": "Liebherr SmartDevice",
     "API key": "API key",
-    "Create the key in the SmartDevice app under Settings - HomeAPI. It is shown only once.": "Create the key in the SmartDevice app under Settings - HomeAPI. It is shown only once.",
     "Please enter the API key": "Please enter the API key",
     "Connection": "Connection",
     "Real-time updates (SSE)": "Real-time updates (SSE)",
@@ -11,5 +10,6 @@
     "Seconds, minimum 60": "Seconds, minimum 60",
     "Commands": "Commands",
     "Allow opening and closing automatic doors": "Allow opening and closing automatic doors",
-    "Creates a command state per door. The door moves physically - only enable this if nobody can get hurt.": "Creates a command state per door. The door moves physically - only enable this if nobody can get hurt."
+    "Creates a command state per door. The door moves physically - only enable this if nobody can get hurt.": "Creates a command state per door. The door moves physically - only enable this if nobody can get hurt.",
+    "Create the key in the SmartDevice app: Settings - Become a beta tester - Beta testing HomeAPI - Generate new key. It is shown only once; a new key invalidates the old one.": "Create the key in the SmartDevice app: Settings - Become a beta tester - Beta testing HomeAPI - Generate new key. It is shown only once; a new key invalidates the old one."
 }

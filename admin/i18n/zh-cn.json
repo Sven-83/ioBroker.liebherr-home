@@ -3,7 +3,7 @@
     "Allow opening and closing automatic doors": "允许打开和关闭自动门",
     "Commands": "命令",
     "Connection": "联系",
-    "Create the key in the SmartDevice app under Settings - HomeAPI. It is shown only once.": "在 SmartDevice 应用程序的“设置 - HomeAPI”下创建密钥。它仅显示一次。",
+    "Create the key in the SmartDevice app: Settings - Become a beta tester - Beta testing HomeAPI - Generate new key. It is shown only once; a new key invalidates the old one.": "在 SmartDevice 应用程序中创建密钥：设置 - 成为 Beta 测试人员 - Beta 测试 HomeAPI - 生成新密钥。仅显示一次；新密钥会使旧密钥失效。",
     "Creates a command state per door. The door moves physically - only enable this if nobody can get hurt.": "为每个门创建一个命令状态。门会物理移动——只有在没有人受伤的情况下才启用此功能。",
     "Liebherr SmartDevice": "利勃海尔智能设备",
     "Please enter the API key": "请输入API密钥",

@@ -3,7 +3,7 @@
     "Allow opening and closing automatic doors": "Autoriser l'ouverture et la fermeture des portes automatiques",
     "Commands": "Commandes",
     "Connection": "Connexion",
-    "Create the key in the SmartDevice app under Settings - HomeAPI. It is shown only once.": "Créez la clé dans l'application SmartDevice sous Paramètres - HomeAPI. Il n'est affiché qu'une seule fois.",
+    "Create the key in the SmartDevice app: Settings - Become a beta tester - Beta testing HomeAPI - Generate new key. It is shown only once; a new key invalidates the old one.": "Créez la clé dans l'application SmartDevice : Paramètres - Devenir bêta-testeur - Bêta test HomeAPI - Générer une nouvelle clé. Il n'est affiché qu'une seule fois ; une nouvelle clé invalide l'ancienne.",
     "Creates a command state per door. The door moves physically - only enable this if nobody can get hurt.": "Crée un état de commande par porte. La porte bouge physiquement - activez-la uniquement si personne ne peut être blessé.",
     "Liebherr SmartDevice": "Appareil intelligent Liebherr",
     "Please enter the API key": "Veuillez saisir la clé API",

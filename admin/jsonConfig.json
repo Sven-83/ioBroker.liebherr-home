@@ -10,7 +10,7 @@
         "apiKey": {
             "type": "password",
             "label": "API key",
-            "help": "Create the key in the SmartDevice app under Settings - HomeAPI. It is shown only once.",
+            "help": "Create the key in the SmartDevice app: Settings - Become a beta tester - Beta testing HomeAPI - Generate new key. It is shown only once; a new key invalidates the old one.",
             "validator": "!!(data.apiKey || '').trim()",
             "validatorErrorText": "Please enter the API key",
             "validatorNoSaveOnError": true,

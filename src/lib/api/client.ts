@@ -21,7 +21,7 @@ export type FetchFn = (input: string, init?: RequestInit) => Promise<Response>;
 export const BASE_URL = 'https://home-api.smartdevice.liebherr.com';
 
 /** Timeout per request in ms */
-export const HTTP_TIMEOUT_MS = 15_000;
+export const HTTP_TIMEOUT_MS = 10_000;
 
 /** Settings of the client */
 export interface HomeApiClientOptions {

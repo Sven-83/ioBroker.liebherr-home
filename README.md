@@ -5,121 +5,136 @@
 [![Downloads](https://img.shields.io/npm/dm/iobroker.liebherr-home.svg)](https://www.npmjs.com/package/iobroker.liebherr-home)
 ![Number of Installations](https://iobroker.live/badges/liebherr-home-installed.svg)
 ![Current version in stable repository](https://iobroker.live/badges/liebherr-home-stable.svg)
-
-[![NPM](https://nodei.co/npm/iobroker.liebherr-home.png?downloads=true)](https://nodei.co/npm/iobroker.liebherr-home/)
+[![License](https://img.shields.io/github/license/Sven-83/ioBroker.liebherr-home)](LICENSE)
 
 **Tests:** ![Test and Release](https://github.com/Sven-83/ioBroker.liebherr-home/workflows/Test%20and%20Release/badge.svg)
 
-## liebherr-home adapter for ioBroker
+German documentation: [docs/de/README.md](docs/de/README.md)
 
-Liebherr fridges and freezers via the official SmartDevice HomeAPI
+---
 
-## Developer manual
-This section is intended for the developer. It can be deleted later.
+## Liebherr SmartDevice adapter for ioBroker
 
-### DISCLAIMER
+Reads and controls Liebherr fridges and freezers via the official, cloud-based **Liebherr SmartDevice HomeAPI**.
 
-Please make sure that you consider copyrights and trademarks when you use names or logos of a company and add a disclaimer to your README.
-You can check other adapters for examples or ask in the developer community. Using a name or logo of a company without permission may cause legal problems for you.
+### Features
+- Current and target temperature per zone, SuperCool / SuperFrost, night mode, party mode
+- HydroBreeze, IceMaker, BioFresh-Plus and presentation light, if the appliance has them
+- Automatic door: status, and opening/closing only if explicitly enabled in the settings
+- Real-time updates via Server-Sent Events, polling continues as resync
+- Only what an appliance reports is created; unknown functions are kept as raw JSON, so new
+  features become visible without an adapter update
+- Serial numbers never appear in object IDs, states or logs
 
-### Getting started
+### Requirements
+- Liebherr appliances connected in the **SmartDevice app** (the HomeAPI only sees appliances that are online there)
+- A HomeAPI key from the SmartDevice app (see below)
+- Node.js 22 or newer, js-controller 6.0.11 or newer, admin 7.6.20 or newer
+- Internet access from the ioBroker host to `home-api.smartdevice.liebherr.com`
 
-You are almost done, only a few steps left:
-1. Create a new repository on GitHub with the name `ioBroker.liebherr-home`
-1. Initialize the current folder as a new git repository:  
-    ```bash
-    git init -b main
-    git add .
-    git commit -m "Initial commit"
-    ```
-1. Link your local repository with the one on GitHub:  
-    ```bash
-    git remote add origin https://github.com/Sven-83/ioBroker.liebherr-home
-    ```
+### Getting the API key
+In the SmartDevice app: *Settings* → *Become a beta tester* → activate *Beta testing HomeAPI* → *Generate new key*.
+Copy the key right away, it is shown only once. Generating a new key invalidates the old one – the adapter then
+reports "rejected the API key" until you enter the new key.
 
-1. Push all files to the GitHub repo:  
-    ```bash
-    git push origin main
-    ```
-1. Add a new secret under https://github.com/Sven-83/ioBroker.liebherr-home/settings/secrets. It must be named `AUTO_MERGE_TOKEN` and contain a personal access token with push access to the repository, e.g. yours. You can create a new token under https://github.com/settings/tokens.
+The HomeAPI is a beta service by Liebherr; fields and endpoints may change.
 
-1. Head over to [src/main.ts](src/main.ts) and start programming!
+### Installation
+Install the adapter in Admin on the *Adapters* page, then add an instance and enter the API key.
 
-### Best Practices
-We've collected some [best practices](https://github.com/ioBroker/ioBroker.repositories#development-and-coding-best-practices) regarding ioBroker development and coding in general. If you're new to ioBroker or Node.js, you should
-check them out. If you're already experienced, you should also take a look at them - you might learn something new :)
+The adapter is not yet listed in the ioBroker repositories.
 
-### State Roles
-When creating state objects, it is important to use the correct role for the state. The role defines how the state should be interpreted by visualizations and other adapters. For a list of available roles and their meanings, please refer to the [state roles documentation](https://www.iobroker.net/#en/documentation/dev/stateroles.md).
+### Configuration
+| Setting | Description |
+|---|---|
+| API key | Key from the SmartDevice app. Stored encrypted. |
+| Real-time updates (SSE) | One event stream per appliance; changes arrive within seconds. Polling remains active as resync. |
+| Allow opening and closing automatic doors | Creates a command state per automatic door. **The door moves physically** – only enable this if nobody can get hurt. Off by default. |
+| Polling interval | Seconds (60–3600, default 300). |
 
-**Important:** Do not invent your own custom role names. If you need a role that is not part of the official list, please contact the ioBroker developer community for guidance and discussion about adding new roles.
+### States
+Each appliance gets a device `liebherr-home.<n>.<type>_<id>`, e.g. `fridge_3f9a1c2e`. The id is derived from the
+serial number with a keyed hash (HMAC) and a random salt per instance, so it cannot be traced back to the
+serial number. It stays the same as long as the instance exists; a new instance creates new ids.
 
-### Scripts in `package.json`
-Several npm scripts are predefined for your convenience. You can run them using `npm run <scriptname>`
-| Script name | Description |
-|-------------|-------------|
-| `build` | Compile the TypeScript sources. |
-| `watch` | Compile the TypeScript sources and watch for changes. |
-| `test:ts` | Executes the tests you defined in `*.test.ts` files. |
-| `test:package` | Ensures your `package.json` and `io-package.json` are valid. |
-| `test:integration` | Tests the adapter startup with an actual instance of ioBroker. |
-| `test` | Performs a minimal test run on package files and your tests. |
-| `check` | Performs a type-check on your code (without compiling anything). |
-| `lint` | Runs `ESLint` to check your code for formatting errors and potential bugs. |
-| `translate` | Translates texts in your adapter to all required languages, see [`@iobroker/adapter-dev`](https://github.com/ioBroker/adapter-dev#manage-translations) for more details. |
-| `release` | Creates a new release, see [`@alcalzone/release-script`](https://github.com/AlCalzone/release-script#usage) for more details. |
+**`info.*`** (read-only)
 
-### Configuring the compilation
-The adapter template uses [esbuild](https://esbuild.github.io/) to compile TypeScript and/or React code. You can configure many compilation settings 
-either in `tsconfig.json` or by changing options for the build tasks. These options are described in detail in the
-[`@iobroker/adapter-dev` documentation](https://github.com/ioBroker/adapter-dev#compile-adapter-files).
+| State | Type | Description |
+|---|---|---|
+| `name` | string | Name of the appliance in the SmartDevice app |
+| `model` | string | Model, e.g. `IRBbi 4170-150 2` |
+| `type` | string | `FRIDGE`, `FREEZER`, `COMBI`, `WINE` |
+| `reachable` | boolean | The cloud can reach the appliance |
+| `lastUpdate` | number | Last data from the cloud (ms since epoch) |
 
-### Writing tests
-When done right, testing code is invaluable, because it gives you the 
-confidence to change your code while knowing exactly if and when 
-something breaks. A good read on the topic of test-driven development 
-is https://hackernoon.com/introduction-to-test-driven-development-tdd-61a13bc92d92. 
-Although writing tests before the code might seem strange at first, but it has very 
-clear upsides.
+**`zones.<n>.*`** – one channel per zone (`Zone 0 (top)` …)
 
-The template provides you with basic tests for the adapter startup and package files.
-It is recommended that you add your own tests into the mix.
+| State | Type | Writable | Description |
+|---|---|---|---|
+| `temperature` | number °C/°F | – | Current temperature |
+| `setpoint` | number °C/°F | ✓ | Target temperature, whole degrees within the appliance limits (`min`/`max` in the object) |
+| `supercool` / `superfrost` | boolean | ✓ | SuperCool / SuperFrost |
+| `hydrobreeze` | string | ✓ | `OFF`, `LOW`, `MEDIUM`, `HIGH` |
+| `icemaker` | string | ✓ | `OFF`, `ON`, `MAX_ICE` (if supported) |
+| `biofreshplus` | string | ✓ | Modes the appliance supports |
+| `autodoor` | string | – | `CLOSED`, `OPEN`, `MOVING` |
+| `autodoorCommand` | boolean | ✓ | `true` opens, `false` closes – only with the setting enabled |
 
-### Publishing the adapter
-Using GitHub Actions, you can enable automatic releases on npm whenever you push a new git tag that matches the form 
-`v<major>.<minor>.<patch>`. We **strongly recommend** that you do. The necessary steps are described in `.github/workflows/test-and-release.yml`.
+**`functions.*`** – functions without a zone
 
-Since you installed the release script, you can create a new
-release simply by calling:
-```bash
-npm run release
-```
-Additional command line options for the release script are explained in the
-[release-script documentation](https://github.com/AlCalzone/release-script#command-line).
+| State | Type | Writable | Description |
+|---|---|---|---|
+| `nightmode` | boolean | ✓ | Night mode |
+| `partymode` | boolean | ✓ | Party mode (the appliance switches SuperCool on with it) |
+| `presentationlight` | number | ✓ | Brightness 0 … max |
 
-To get your adapter released in ioBroker, please refer to the documentation 
-of [ioBroker.repositories](https://github.com/ioBroker/ioBroker.repositories#requirements-for-adapter-to-get-added-to-the-latest-repository).
+**`raw.*`** – controls of unknown type as JSON (read-only).
 
-### Test the adapter manually with dev-server
-Since you set up `dev-server`, you can use it to run, test and debug your adapter.
+**Instance states:** `info.connection` (HomeAPI reachable, key accepted) and `info.realtime` (event streams of all appliances open).
 
-You may start `dev-server` by calling from your dev directory:
-```bash
-dev-server watch
-```
+#### Commands
+Commands are checked before they are sent (range, whole degrees, allowed modes). Invalid values are not sent;
+the state returns to the real value and the log shows why. Quick changes (e.g. a slider) are combined, only the
+last value is sent. After the cloud accepts a command, the adapter reads the value back and confirms it with
+`ack: true`. If a command fails, the last confirmed value is restored.
 
-The ioBroker.admin interface will then be available at http://localhost:8081/
+### Security
+- The API key is stored encrypted and never written to logs, URLs or states.
+- Serial numbers are masked in all log messages and never stored in objects or states.
+- Automatic doors can only be moved after enabling the setting for it.
+- Please report security issues privately as described in [SECURITY.md](SECURITY.md).
 
-Please refer to the [`dev-server` documentation](https://github.com/ioBroker/dev-server#command-line) for more details.
+### Known limitations
+- The HomeAPI is a beta service; Liebherr may change it at any time.
+- Temperatures are whole degrees only (the API has no decimals).
+- There is no online flag; an appliance counts as unreachable when the cloud answers "device not reachable".
+- Rate limits of the HomeAPI are not documented; the adapter respects HTTP 429 and `Retry-After` if they occur.
+- Tested with a fridge (IRBbi 4170) and a freezer (GNP 3755). IceMaker, BioFresh-Plus, presentation light,
+  automatic door and °F appliances are implemented from the API specification but not tested on real appliances.
+
+---
+
+## Disclaimer
+
+This project is not affiliated with, endorsed by or connected to Liebherr.
+Liebherr and SmartDevice are trademarks of their respective owners. Use at your own risk.
+
+This adapter is an independent implementation based on the official HomeAPI specification; it contains no code
+from other Liebherr adapters.
 
 ## Changelog
 <!--
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-
-### **WORK IN PROGRESS**
-* (Sven-83) initial release
+### 0.1.0 (2026-10-22)
+* (Sven-83) first working version: appliances, zones and functions from the HomeAPI, capability based
+* (Sven-83) writable target temperature, SuperCool/SuperFrost, night and party mode, HydroBreeze, IceMaker,
+  BioFresh-Plus, presentation light; checked before sending and confirmed by reading back
+* (Sven-83) real-time updates via Server-Sent Events (`info.realtime`), polling as resync
+* (Sven-83) automatic doors only behind an explicit setting
+* (Sven-83) serial numbers masked in object IDs and logs, API key stored encrypted
+* (Sven-83) HTTP 429 / Retry-After respected, quiet log during cloud outages, random start delay
 
 ## License
 MIT License
