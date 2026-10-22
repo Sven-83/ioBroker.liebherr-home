@@ -1,11 +1,12 @@
 /*
  * ioBroker.liebherr-home
- * Adapter lifecycle only - API details live in lib/api, helpers in lib/util.
+ * Adapter lifecycle only - API details live in lib/api, object tree in lib/model, helpers in lib/util.
  */
 
 import * as utils from '@iobroker/adapter-core';
 import { HomeApiClient, normalizeApiKey } from './lib/api/client';
-import { AbortedError, KeyRejectedError, describeError } from './lib/api/errors';
+import { AbortedError, DeviceUnreachableError, KeyRejectedError, describeError } from './lib/api/errors';
+import { DeviceStore } from './lib/model/device-store';
 import { POLL_DEFAULT_S, pollIntervalSeconds } from './lib/util/config';
 import { createSalt, isValidSalt } from './lib/util/device-key';
 
@@ -14,10 +15,12 @@ const RETRY_START_S = 60;
 
 class LiebherrHome extends utils.Adapter {
     private client: HomeApiClient | undefined;
+    private store: DeviceStore | undefined;
     private timer: ioBroker.Timeout | undefined;
     private pollSeconds = POLL_DEFAULT_S;
     private retrySeconds = RETRY_START_S;
     private connectionState: boolean | undefined;
+    private firstSync = true;
 
     public constructor(options: Partial<utils.AdapterOptions> = {}) {
         super({
@@ -51,25 +54,44 @@ class LiebherrHome extends utils.Adapter {
 
         this.pollSeconds = pollIntervalSeconds(this.config.pollInterval);
         this.client = new HomeApiClient(apiKey);
-        await this.checkConnection();
+        this.store = new DeviceStore(
+            {
+                ensureObject: async (id, obj) => {
+                    await this.extendObject(id, obj);
+                },
+                setValue: async (id, value) => {
+                    await this.setState(id, value, true);
+                },
+            },
+            this.log,
+            this.config.deviceSalt,
+        );
+        await this.poll();
     }
 
     /**
-     * Reads the device list to verify key and cloud connection, then schedules the next check.
-     * Phase 2 placeholder for discovery and polling (phase 3).
+     * One polling cycle: device list (discovery), then the controls of every device.
+     * Phase 4 adds SSE for real time; polling stays as resync.
      */
-    private async checkConnection(): Promise<void> {
+    private async poll(): Promise<void> {
         this.timer = undefined;
-        if (!this.client) {
+        const { client, store } = this;
+        if (!client || !store) {
             return;
         }
         try {
-            const devices = await this.client.getDevices();
-            this.retrySeconds = RETRY_START_S;
+            const devices = await client.getDevices();
+            const keys = await store.syncDevices(devices);
             if (this.connectionState !== true) {
                 this.log.info(`Connected to the Liebherr HomeAPI, ${devices.length} device(s) found`);
             }
             await this.setConnected(true);
+            await this.markMissingDevices(store, keys);
+
+            for (const key of keys) {
+                await this.pollDevice(client, store, key);
+            }
+            this.retrySeconds = RETRY_START_S;
             this.schedule(this.pollSeconds);
         } catch (error) {
             if (error instanceof AbortedError) {
@@ -90,10 +112,66 @@ class LiebherrHome extends utils.Adapter {
     }
 
     /**
-     * @param seconds - Delay until the next connection check
+     * Reads and writes the controls of one device. Only "device not reachable" is handled
+     * here - every other error concerns the cloud and ends the cycle.
+     *
+     * @param client - API client
+     * @param store - Object store
+     * @param key - Device key
+     */
+    private async pollDevice(client: HomeApiClient, store: DeviceStore, key: string): Promise<void> {
+        const deviceId = store.deviceIdOf(key);
+        if (!deviceId) {
+            return;
+        }
+        try {
+            const controls = await client.getControls(deviceId);
+            await store.applyControls(key, controls);
+            await store.setReachable(key, true);
+        } catch (error) {
+            if (error instanceof DeviceUnreachableError) {
+                await store.setReachable(key, false);
+                return;
+            }
+            throw error;
+        }
+    }
+
+    /**
+     * Devices that disappeared from the account keep their objects but are marked unreachable.
+     *
+     * @param store - Object store
+     * @param keys - Keys of the current device list
+     */
+    private async markMissingDevices(store: DeviceStore, keys: string[]): Promise<void> {
+        const current = new Set(keys);
+        if (this.firstSync) {
+            // devices from earlier adapter runs
+            this.firstSync = false;
+            const view = await this.getObjectViewAsync('system', 'device', {
+                startkey: `${this.namespace}.`,
+                endkey: `${this.namespace}.香`,
+            });
+            for (const row of view.rows) {
+                const key = row.id.slice(this.namespace.length + 1);
+                if (!current.has(key)) {
+                    this.log.info(`Device ${key} is no longer in the account - its objects are kept`);
+                    await this.setState(`${key}.info.reachable`, false, true);
+                }
+            }
+        }
+        for (const key of store.keys) {
+            if (!current.has(key)) {
+                await store.setReachable(key, false);
+            }
+        }
+    }
+
+    /**
+     * @param seconds - Delay until the next polling cycle
      */
     private schedule(seconds: number): void {
-        this.timer = this.setTimeout(() => void this.checkConnection(), seconds * 1000);
+        this.timer = this.setTimeout(() => void this.poll(), seconds * 1000);
     }
 
     /**

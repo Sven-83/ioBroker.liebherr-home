@@ -24,6 +24,7 @@ __export(client_exports, {
   normalizeApiKey: () => normalizeApiKey
 });
 module.exports = __toCommonJS(client_exports);
+var import_redact = require("../util/redact");
 var import_errors = require("./errors");
 const BASE_URL = "https://home-api.smartdevice.liebherr.com";
 const HTTP_TIMEOUT_MS = 15e3;
@@ -57,11 +58,32 @@ class HomeApiClient {
       (entry) => typeof entry === "object" && entry !== null && typeof entry.deviceId === "string"
     );
   }
+  /**
+   * All controls of one device (GET /v1/devices/{deviceId}/controls).
+   *
+   * @param deviceId - deviceId from getDevices()
+   */
+  async getControls(deviceId) {
+    if (!import_redact.DEVICE_ID_PATTERN.test(deviceId)) {
+      throw new import_errors.ApiError("Invalid deviceId format");
+    }
+    const body = await this.getJson(`/v1/devices/${deviceId}/controls`, true);
+    if (!Array.isArray(body)) {
+      throw new import_errors.ApiError("Unexpected answer for controls (no array)");
+    }
+    return body.filter(
+      (entry) => typeof entry === "object" && entry !== null && typeof entry.type === "string"
+    );
+  }
   /** Aborts all running requests, used in onUnload */
   close() {
     this.shutdown.abort();
   }
-  async getJson(path) {
+  /**
+   * @param path - Path below the base URL
+   * @param devicePath - 404 means "device not reachable" on device paths
+   */
+  async getJson(path, devicePath = false) {
     if (this.shutdown.signal.aborted) {
       throw new import_errors.AbortedError();
     }
@@ -83,6 +105,9 @@ class HomeApiClient {
     }
     if (response.status === 401) {
       throw new import_errors.KeyRejectedError();
+    }
+    if (response.status === 404 && devicePath) {
+      throw new import_errors.DeviceUnreachableError();
     }
     if (response.status === 429) {
       throw new import_errors.RateLimitedError();

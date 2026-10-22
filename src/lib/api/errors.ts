@@ -27,6 +27,14 @@ export class KeyRejectedError extends HomeApiError {
     }
 }
 
+/** HTTP 404 on a device path - the cloud cannot reach the appliance (spec: "Device is not reachable") */
+export class DeviceUnreachableError extends HomeApiError {
+    /** Fixed message */
+    public constructor() {
+        super('Device is not reachable (HTTP 404)');
+    }
+}
+
 /** HTTP 429 */
 export class RateLimitedError extends HomeApiError {
     /** Fixed message */

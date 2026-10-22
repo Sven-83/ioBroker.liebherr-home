@@ -20,6 +20,7 @@ var errors_exports = {};
 __export(errors_exports, {
   AbortedError: () => AbortedError,
   ApiError: () => ApiError,
+  DeviceUnreachableError: () => DeviceUnreachableError,
   HomeApiError: () => HomeApiError,
   KeyRejectedError: () => KeyRejectedError,
   NetworkError: () => NetworkError,
@@ -42,6 +43,12 @@ class KeyRejectedError extends HomeApiError {
   /** Fixed message */
   constructor() {
     super("Liebherr HomeAPI rejected the API key (HTTP 401)");
+  }
+}
+class DeviceUnreachableError extends HomeApiError {
+  /** Fixed message */
+  constructor() {
+    super("Device is not reachable (HTTP 404)");
   }
 }
 class RateLimitedError extends HomeApiError {
@@ -86,6 +93,7 @@ function describeError(error) {
 0 && (module.exports = {
   AbortedError,
   ApiError,
+  DeviceUnreachableError,
   HomeApiError,
   KeyRejectedError,
   NetworkError,

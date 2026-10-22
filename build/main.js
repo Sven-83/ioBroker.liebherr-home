@@ -24,15 +24,18 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 var utils = __toESM(require("@iobroker/adapter-core"));
 var import_client = require("./lib/api/client");
 var import_errors = require("./lib/api/errors");
+var import_device_store = require("./lib/model/device-store");
 var import_config = require("./lib/util/config");
 var import_device_key = require("./lib/util/device-key");
 const RETRY_START_S = 60;
 class LiebherrHome extends utils.Adapter {
   client;
+  store;
   timer;
   pollSeconds = import_config.POLL_DEFAULT_S;
   retrySeconds = RETRY_START_S;
   connectionState;
+  firstSync = true;
   constructor(options = {}) {
     super({
       ...options,
@@ -60,24 +63,42 @@ class LiebherrHome extends utils.Adapter {
     }
     this.pollSeconds = (0, import_config.pollIntervalSeconds)(this.config.pollInterval);
     this.client = new import_client.HomeApiClient(apiKey);
-    await this.checkConnection();
+    this.store = new import_device_store.DeviceStore(
+      {
+        ensureObject: async (id, obj) => {
+          await this.extendObject(id, obj);
+        },
+        setValue: async (id, value) => {
+          await this.setState(id, value, true);
+        }
+      },
+      this.log,
+      this.config.deviceSalt
+    );
+    await this.poll();
   }
   /**
-   * Reads the device list to verify key and cloud connection, then schedules the next check.
-   * Phase 2 placeholder for discovery and polling (phase 3).
+   * One polling cycle: device list (discovery), then the controls of every device.
+   * Phase 4 adds SSE for real time; polling stays as resync.
    */
-  async checkConnection() {
+  async poll() {
     this.timer = void 0;
-    if (!this.client) {
+    const { client, store } = this;
+    if (!client || !store) {
       return;
     }
     try {
-      const devices = await this.client.getDevices();
-      this.retrySeconds = RETRY_START_S;
+      const devices = await client.getDevices();
+      const keys = await store.syncDevices(devices);
       if (this.connectionState !== true) {
         this.log.info(`Connected to the Liebherr HomeAPI, ${devices.length} device(s) found`);
       }
       await this.setConnected(true);
+      await this.markMissingDevices(store, keys);
+      for (const key of keys) {
+        await this.pollDevice(client, store, key);
+      }
+      this.retrySeconds = RETRY_START_S;
       this.schedule(this.pollSeconds);
     } catch (error) {
       if (error instanceof import_errors.AbortedError) {
@@ -96,10 +117,63 @@ class LiebherrHome extends utils.Adapter {
     }
   }
   /**
-   * @param seconds - Delay until the next connection check
+   * Reads and writes the controls of one device. Only "device not reachable" is handled
+   * here - every other error concerns the cloud and ends the cycle.
+   *
+   * @param client - API client
+   * @param store - Object store
+   * @param key - Device key
+   */
+  async pollDevice(client, store, key) {
+    const deviceId = store.deviceIdOf(key);
+    if (!deviceId) {
+      return;
+    }
+    try {
+      const controls = await client.getControls(deviceId);
+      await store.applyControls(key, controls);
+      await store.setReachable(key, true);
+    } catch (error) {
+      if (error instanceof import_errors.DeviceUnreachableError) {
+        await store.setReachable(key, false);
+        return;
+      }
+      throw error;
+    }
+  }
+  /**
+   * Devices that disappeared from the account keep their objects but are marked unreachable.
+   *
+   * @param store - Object store
+   * @param keys - Keys of the current device list
+   */
+  async markMissingDevices(store, keys) {
+    const current = new Set(keys);
+    if (this.firstSync) {
+      this.firstSync = false;
+      const view = await this.getObjectViewAsync("system", "device", {
+        startkey: `${this.namespace}.`,
+        endkey: `${this.namespace}.\u9999`
+      });
+      for (const row of view.rows) {
+        const key = row.id.slice(this.namespace.length + 1);
+        if (!current.has(key)) {
+          this.log.info(`Device ${key} is no longer in the account - its objects are kept`);
+          await this.setState(`${key}.info.reachable`, false, true);
+        }
+      }
+    }
+    for (const key of store.keys) {
+      if (!current.has(key)) {
+        await store.setReachable(key, false);
+      }
+    }
+  }
+  /**
+   * @param seconds - Delay until the next polling cycle
    */
   schedule(seconds) {
-    this.timer = this.setTimeout(() => void this.checkConnection(), seconds * 1e3);
+    this.timer = this.setTimeout(() => void this.poll(), seconds * 1e3);
   }
   /**
    * @param connected - New connection state

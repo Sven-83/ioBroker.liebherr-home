@@ -5,6 +5,7 @@ import { HomeApiClient, normalizeApiKey, type FetchFn } from './client';
 import {
     AbortedError,
     ApiError,
+    DeviceUnreachableError,
     KeyRejectedError,
     NetworkError,
     RateLimitedError,
@@ -71,6 +72,29 @@ describe('api/client', () => {
         expect(devices.map(d => d.deviceType)).to.deep.equal(['FRIDGE', 'FREEZER']);
         expect(calls[0].url).to.equal('https://home-api.smartdevice.liebherr.com/v1/devices');
         expect(calls[0].init?.headers).to.deep.include({ 'api-key': 'KEY' });
+    });
+
+    it('reads the controls of the real fixture', async () => {
+        const calls: { url: string; init?: RequestInit }[] = [];
+        const client = new HomeApiClient('KEY', { fetch: answer(200, fixture('device-2.controls.json'), calls) });
+
+        const controls = await client.getControls('34.916.716.7');
+
+        expect(controls.map(c => c.name)).to.deep.equal(['superfrost', 'temperature']);
+        expect(calls[0].url).to.equal('https://home-api.smartdevice.liebherr.com/v1/devices/34.916.716.7/controls');
+    });
+
+    it('maps 404 on a device path to DeviceUnreachableError, but not on /v1/devices', async () => {
+        const client = new HomeApiClient('KEY', { fetch: answer(404, { error: 'Device is not reachable' }) });
+        expect(await rejection(client.getControls('34.916.716.7'))).to.be.instanceOf(DeviceUnreachableError);
+        expect(await rejection(client.getDevices())).to.be.instanceOf(ApiError);
+    });
+
+    it('rejects invalid deviceIds without a request', async () => {
+        const calls: { url: string; init?: RequestInit }[] = [];
+        const client = new HomeApiClient('KEY', { fetch: answer(200, [], calls) });
+        expect(await rejection(client.getControls('../devices'))).to.be.instanceOf(ApiError);
+        expect(calls).to.have.length(0);
     });
 
     it('skips entries without deviceId', async () => {

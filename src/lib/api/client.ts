@@ -3,16 +3,18 @@
  * Timeout and shutdown abort per request; maps every failure to an error class from ./errors.
  */
 
+import { DEVICE_ID_PATTERN } from '../util/redact';
 import {
     AbortedError,
     ApiError,
+    DeviceUnreachableError,
     KeyRejectedError,
     NetworkError,
     RateLimitedError,
     ServiceUnavailableError,
     describeError,
 } from './errors';
-import type { Device } from './types';
+import type { Device, DeviceControl } from './types';
 
 export type FetchFn = (input: string, init?: RequestInit) => Promise<Response>;
 
@@ -74,12 +76,36 @@ export class HomeApiClient {
         );
     }
 
+    /**
+     * All controls of one device (GET /v1/devices/{deviceId}/controls).
+     *
+     * @param deviceId - deviceId from getDevices()
+     */
+    public async getControls(deviceId: string): Promise<DeviceControl[]> {
+        if (!DEVICE_ID_PATTERN.test(deviceId)) {
+            // the API answers 400 anyway - and this keeps arbitrary strings out of the URL
+            throw new ApiError('Invalid deviceId format');
+        }
+        const body = await this.getJson(`/v1/devices/${deviceId}/controls`, true);
+        if (!Array.isArray(body)) {
+            throw new ApiError('Unexpected answer for controls (no array)');
+        }
+        return body.filter(
+            (entry): entry is DeviceControl =>
+                typeof entry === 'object' && entry !== null && typeof (entry as DeviceControl).type === 'string',
+        );
+    }
+
     /** Aborts all running requests, used in onUnload */
     public close(): void {
         this.shutdown.abort();
     }
 
-    private async getJson(path: string): Promise<unknown> {
+    /**
+     * @param path - Path below the base URL
+     * @param devicePath - 404 means "device not reachable" on device paths
+     */
+    private async getJson(path: string, devicePath = false): Promise<unknown> {
         if (this.shutdown.signal.aborted) {
             throw new AbortedError();
         }
@@ -103,6 +129,9 @@ export class HomeApiClient {
         if (response.status === 401) {
             // body is an HTML page here, not JSON (seen on the real API)
             throw new KeyRejectedError();
+        }
+        if (response.status === 404 && devicePath) {
+            throw new DeviceUnreachableError();
         }
         if (response.status === 429) {
             throw new RateLimitedError();
