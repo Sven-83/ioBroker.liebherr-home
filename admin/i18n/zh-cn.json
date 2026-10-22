@@ -1,4 +1,12 @@
 {
-    "liebherr-home adapter settings": "liebherr-home的适配器设置",
-    "apiKey": "API密钥"
+    "API key": "API密钥",
+    "Connection": "联系",
+    "Create the key in the SmartDevice app under Settings - HomeAPI. It is shown only once.": "在 SmartDevice 应用程序的“设置 - HomeAPI”下创建密钥。它仅显示一次。",
+    "Liebherr SmartDevice": "利勃海尔智能设备",
+    "Please enter the API key": "请输入API密钥",
+    "Polling interval": "轮询间隔",
+    "Polling is used as fallback if the real-time connection fails": "如果实时连接失败，则使用轮询作为后备",
+    "Real-time updates (SSE)": "实时更新（SSE）",
+    "Seconds, minimum 60": "秒，最少 60",
+    "liebherr-home adapter settings": "liebherr-home 的适配器设置"
 }

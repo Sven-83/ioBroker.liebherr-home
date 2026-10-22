@@ -22,41 +22,93 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 var utils = __toESM(require("@iobroker/adapter-core"));
+var import_client = require("./lib/api/client");
+var import_errors = require("./lib/api/errors");
+var import_config = require("./lib/util/config");
+var import_device_key = require("./lib/util/device-key");
+const RETRY_START_S = 60;
 class LiebherrHome extends utils.Adapter {
+  client;
+  timer;
+  pollSeconds = import_config.POLL_DEFAULT_S;
+  retrySeconds = RETRY_START_S;
+  connectionState;
   constructor(options = {}) {
     super({
       ...options,
       name: "liebherr-home"
     });
     this.on("ready", this.onReady.bind(this));
-    this.on("stateChange", this.onStateChange.bind(this));
     this.on("unload", this.onUnload.bind(this));
   }
   /**
    * Is called when databases are connected and adapter received configuration.
    */
   async onReady() {
-    this.setState("info.connection", false, true);
-    this.log.debug("config apiKey: ${this.config.apiKey}");
-    await this.setObjectNotExistsAsync("testVariable", {
-      type: "state",
-      common: {
-        name: "testVariable",
-        type: "boolean",
-        role: "indicator",
-        read: true,
-        write: true
-      },
-      native: {}
-    });
-    this.subscribeStates("testVariable");
-    await this.setState("testVariable", true);
-    await this.setState("testVariable", { val: true, ack: true });
-    await this.setState("testVariable", { val: true, ack: true, expire: 30 });
-    const pwdResult = await this.checkPasswordAsync("admin", "iobroker");
-    this.log.info(`check user admin pw iobroker: ${JSON.stringify(pwdResult)}`);
-    const groupResult = await this.checkGroupAsync("admin", "admin");
-    this.log.info(`check group user admin group admin: ${JSON.stringify(groupResult)}`);
+    await this.setState("info.connection", false, true);
+    const apiKey = (0, import_client.normalizeApiKey)(this.config.apiKey);
+    if (!apiKey) {
+      this.log.error(
+        "No API key configured. Create one in the SmartDevice app and enter it in the instance settings."
+      );
+      return;
+    }
+    if (!(0, import_device_key.isValidSalt)(this.config.deviceSalt)) {
+      this.log.info("Creating the instance salt for device object IDs - the adapter restarts once");
+      await this.updateConfig({ deviceSalt: (0, import_device_key.createSalt)() });
+      return;
+    }
+    this.pollSeconds = (0, import_config.pollIntervalSeconds)(this.config.pollInterval);
+    this.client = new import_client.HomeApiClient(apiKey);
+    await this.checkConnection();
+  }
+  /**
+   * Reads the device list to verify key and cloud connection, then schedules the next check.
+   * Phase 2 placeholder for discovery and polling (phase 3).
+   */
+  async checkConnection() {
+    this.timer = void 0;
+    if (!this.client) {
+      return;
+    }
+    try {
+      const devices = await this.client.getDevices();
+      this.retrySeconds = RETRY_START_S;
+      if (this.connectionState !== true) {
+        this.log.info(`Connected to the Liebherr HomeAPI, ${devices.length} device(s) found`);
+      }
+      await this.setConnected(true);
+      this.schedule(this.pollSeconds);
+    } catch (error) {
+      if (error instanceof import_errors.AbortedError) {
+        return;
+      }
+      await this.setConnected(false);
+      if (error instanceof import_errors.KeyRejectedError) {
+        this.log.error(
+          `${error.message}. Check the key in the instance settings; creating a new key in the app invalidates the old one.`
+        );
+        return;
+      }
+      this.log.warn(`${(0, import_errors.describeError)(error)} - retrying in ${this.retrySeconds} s`);
+      this.schedule(this.retrySeconds);
+      this.retrySeconds = Math.min(this.retrySeconds * 2, this.pollSeconds);
+    }
+  }
+  /**
+   * @param seconds - Delay until the next connection check
+   */
+  schedule(seconds) {
+    this.timer = this.setTimeout(() => void this.checkConnection(), seconds * 1e3);
+  }
+  /**
+   * @param connected - New connection state
+   */
+  async setConnected(connected) {
+    if (this.connectionState !== connected) {
+      this.connectionState = connected;
+      await this.setState("info.connection", connected, true);
+    }
   }
   /**
    * Is called when adapter shuts down - callback has to be called under any circumstances!
@@ -64,59 +116,16 @@ class LiebherrHome extends utils.Adapter {
    * @param callback - Callback function
    */
   onUnload(callback) {
+    var _a;
     try {
+      (_a = this.client) == null ? void 0 : _a.close();
+      this.clearTimeout(this.timer);
       callback();
     } catch (error) {
-      this.log.error(`Error during unloading: ${error.message}`);
+      this.log.error(`Error during unloading: ${(0, import_errors.describeError)(error)}`);
       callback();
     }
   }
-  // If you need to react to object changes, uncomment the following block and the corresponding line in the constructor.
-  // You also need to subscribe to the objects with `this.subscribeObjects`, similar to `this.subscribeStates`.
-  // /**
-  //  * Is called if a subscribed object changes
-  //  */
-  // private onObjectChange(id: string, obj: ioBroker.Object | null | undefined): void {
-  //     if (obj) {
-  //         // The object was changed
-  //         this.log.info(`object ${id} changed: ${JSON.stringify(obj)}`);
-  //     } else {
-  //         // The object was deleted
-  //         this.log.info(`object ${id} deleted`);
-  //     }
-  // }
-  /**
-   * Is called if a subscribed state changes
-   *
-   * @param id - State ID
-   * @param state - State object
-   */
-  onStateChange(id, state) {
-    if (state) {
-      this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
-      if (state.ack === false) {
-        this.log.info(`User command received for ${id}: ${state.val}`);
-      }
-    } else {
-      this.log.info(`state ${id} deleted`);
-    }
-  }
-  // If you need to accept messages in your adapter, uncomment the following block and the corresponding line in the constructor.
-  // /**
-  //  * Some message was sent to this instance over message box. Used by email, pushover, text2speech, ...
-  //  * Using this method requires "common.messagebox" property to be set to true in io-package.json
-  //  */
-  //
-  // private onMessage(obj: ioBroker.Message): void {
-  //     if (typeof obj === 'object' && obj.message) {
-  //         if (obj.command === 'send') {
-  //             // e.g. send email or pushover or whatever
-  //             this.log.info('send command');
-  //             // Send response in callback if required
-  //             if (obj.callback) this.sendTo(obj.from, obj.command, 'Message received', obj.callback);
-  //         }
-  //     }
-  // }
 }
 if (require.main !== module) {
   module.exports = (options) => new LiebherrHome(options);

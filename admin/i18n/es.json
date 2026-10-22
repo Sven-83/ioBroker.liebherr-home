@@ -1,4 +1,12 @@
 {
-    "liebherr-home adapter settings": "Ajustes del adaptador para liebherr-home",
-    "apiKey": "apiKey"
+    "API key": "clave API",
+    "Connection": "Conexión",
+    "Create the key in the SmartDevice app under Settings - HomeAPI. It is shown only once.": "Cree la clave en la aplicación SmartDevice en Configuración - HomeAPI. Se muestra sólo una vez.",
+    "Liebherr SmartDevice": "Dispositivo inteligente Liebherr",
+    "Please enter the API key": "Por favor ingrese la clave API",
+    "Polling interval": "Intervalo de sondeo",
+    "Polling is used as fallback if the real-time connection fails": "El sondeo se utiliza como alternativa si falla la conexión en tiempo real",
+    "Real-time updates (SSE)": "Actualizaciones en tiempo real (SSE)",
+    "Seconds, minimum 60": "Segundos, mínimo 60",
+    "liebherr-home adapter settings": "Configuración del adaptador para liebherr-home"
 }

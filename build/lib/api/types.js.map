@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/lib/api/types.ts"],
+  "sourcesContent": ["/*\n * Types of the Liebherr SmartDevice HomeAPI, derived from docs/homeapi-openapi.json.\n */\n\n/** Device types listed in the spec - the API may add more, so unknown strings are kept */\nexport type DeviceType = 'FRIDGE' | 'FREEZER' | 'COMBI' | 'WINE' | (string & {});\n\n/** Entry of GET /v1/devices (schema \"Device\") */\nexport interface Device {\n    /** deviceId = serial number, format 00.000.000.0 - never log or store it */\n    deviceId: string;\n    /** Name given in the SmartDevice app */\n    nickname?: string;\n    /** Device type */\n    deviceType?: DeviceType;\n    /** Product image */\n    imageUrl?: string | null;\n    /** Model name, e.g. \"IRBbi 4170-150 2\" */\n    deviceName?: string | null;\n}\n"],
+  "mappings": ";;;;;;;;;;;;;;AAAA;AAAA;",
+  "names": []
+}
