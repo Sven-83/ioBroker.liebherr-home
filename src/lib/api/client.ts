@@ -96,6 +96,27 @@ export class HomeApiClient {
         );
     }
 
+    /**
+     * Opens the SSE stream of one device (GET /v1/sse/devices/{deviceId}/controls).
+     * No timeout here - the stream lives for hours; the caller watches it (see sse.ts).
+     *
+     * @param deviceId - deviceId from getDevices()
+     * @param signal - Aborts the stream
+     * @returns The open response, body not yet read
+     */
+    public async openStream(deviceId: string, signal: AbortSignal): Promise<Response> {
+        if (!DEVICE_ID_PATTERN.test(deviceId)) {
+            throw new ApiError('Invalid deviceId format');
+        }
+        const response = await this.send(
+            `/v1/sse/devices/${deviceId}/controls`,
+            'text/event-stream',
+            AbortSignal.any([this.shutdown.signal, signal]),
+        );
+        await this.checkStatus(response, true);
+        return response;
+    }
+
     /** Aborts all running requests, used in onUnload */
     public close(): void {
         this.shutdown.abort();
@@ -106,15 +127,36 @@ export class HomeApiClient {
      * @param devicePath - 404 means "device not reachable" on device paths
      */
     private async getJson(path: string, devicePath = false): Promise<unknown> {
+        const response = await this.send(
+            path,
+            'application/json',
+            AbortSignal.any([this.shutdown.signal, AbortSignal.timeout(this.timeoutMs)]),
+        );
+        await this.checkStatus(response, devicePath);
+        const text = await response.text();
+        try {
+            return JSON.parse(text);
+        } catch {
+            throw new ApiError('Invalid JSON in answer', response.status);
+        }
+    }
+
+    /**
+     * fetch with key header; maps low-level failures to NetworkError / AbortedError.
+     *
+     * @param path - Path below the base URL
+     * @param accept - Accept header
+     * @param signal - Abort signal (shutdown, timeout, caller)
+     */
+    private async send(path: string, accept: string, signal: AbortSignal): Promise<Response> {
         if (this.shutdown.signal.aborted) {
             throw new AbortedError();
         }
-        let response: Response;
         try {
-            response = await this.fetchFn(`${this.baseUrl}${path}`, {
+            return await this.fetchFn(`${this.baseUrl}${path}`, {
                 method: 'GET',
-                headers: { 'api-key': this.apiKey, accept: 'application/json' },
-                signal: AbortSignal.any([this.shutdown.signal, AbortSignal.timeout(this.timeoutMs)]),
+                headers: { 'api-key': this.apiKey, accept },
+                signal,
             });
         } catch (error) {
             if (this.shutdown.signal.aborted) {
@@ -125,7 +167,20 @@ export class HomeApiClient {
             }
             throw new NetworkError(describeError(error));
         }
+    }
 
+    /**
+     * Throws the matching error class for every non-2xx answer.
+     *
+     * @param response - Answer
+     * @param devicePath - 404 means "device not reachable" on device paths
+     */
+    private async checkStatus(response: Response, devicePath: boolean): Promise<void> {
+        if (response.ok) {
+            return;
+        }
+        // always consume the (small) error body so the connection is released
+        const text = await response.text().catch(() => '');
         if (response.status === 401) {
             // body is an HTML page here, not JSON (seen on the real API)
             throw new KeyRejectedError();
@@ -139,15 +194,7 @@ export class HomeApiClient {
         if (response.status >= 500) {
             throw new ServiceUnavailableError(response.status);
         }
-        const text = await response.text();
-        if (!response.ok) {
-            throw new ApiError(`HTTP ${response.status}: ${errorMessage(text)}`, response.status);
-        }
-        try {
-            return JSON.parse(text);
-        } catch {
-            throw new ApiError('Invalid JSON in answer', response.status);
-        }
+        throw new ApiError(`HTTP ${response.status}: ${errorMessage(text)}`, response.status);
     }
 }
 

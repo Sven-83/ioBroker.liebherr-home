@@ -75,6 +75,26 @@ class HomeApiClient {
       (entry) => typeof entry === "object" && entry !== null && typeof entry.type === "string"
     );
   }
+  /**
+   * Opens the SSE stream of one device (GET /v1/sse/devices/{deviceId}/controls).
+   * No timeout here - the stream lives for hours; the caller watches it (see sse.ts).
+   *
+   * @param deviceId - deviceId from getDevices()
+   * @param signal - Aborts the stream
+   * @returns The open response, body not yet read
+   */
+  async openStream(deviceId, signal) {
+    if (!import_redact.DEVICE_ID_PATTERN.test(deviceId)) {
+      throw new import_errors.ApiError("Invalid deviceId format");
+    }
+    const response = await this.send(
+      `/v1/sse/devices/${deviceId}/controls`,
+      "text/event-stream",
+      AbortSignal.any([this.shutdown.signal, signal])
+    );
+    await this.checkStatus(response, true);
+    return response;
+  }
   /** Aborts all running requests, used in onUnload */
   close() {
     this.shutdown.abort();
@@ -84,15 +104,35 @@ class HomeApiClient {
    * @param devicePath - 404 means "device not reachable" on device paths
    */
   async getJson(path, devicePath = false) {
+    const response = await this.send(
+      path,
+      "application/json",
+      AbortSignal.any([this.shutdown.signal, AbortSignal.timeout(this.timeoutMs)])
+    );
+    await this.checkStatus(response, devicePath);
+    const text = await response.text();
+    try {
+      return JSON.parse(text);
+    } catch {
+      throw new import_errors.ApiError("Invalid JSON in answer", response.status);
+    }
+  }
+  /**
+   * fetch with key header; maps low-level failures to NetworkError / AbortedError.
+   *
+   * @param path - Path below the base URL
+   * @param accept - Accept header
+   * @param signal - Abort signal (shutdown, timeout, caller)
+   */
+  async send(path, accept, signal) {
     if (this.shutdown.signal.aborted) {
       throw new import_errors.AbortedError();
     }
-    let response;
     try {
-      response = await this.fetchFn(`${this.baseUrl}${path}`, {
+      return await this.fetchFn(`${this.baseUrl}${path}`, {
         method: "GET",
-        headers: { "api-key": this.apiKey, accept: "application/json" },
-        signal: AbortSignal.any([this.shutdown.signal, AbortSignal.timeout(this.timeoutMs)])
+        headers: { "api-key": this.apiKey, accept },
+        signal
       });
     } catch (error) {
       if (this.shutdown.signal.aborted) {
@@ -103,6 +143,18 @@ class HomeApiClient {
       }
       throw new import_errors.NetworkError((0, import_errors.describeError)(error));
     }
+  }
+  /**
+   * Throws the matching error class for every non-2xx answer.
+   *
+   * @param response - Answer
+   * @param devicePath - 404 means "device not reachable" on device paths
+   */
+  async checkStatus(response, devicePath) {
+    if (response.ok) {
+      return;
+    }
+    const text = await response.text().catch(() => "");
     if (response.status === 401) {
       throw new import_errors.KeyRejectedError();
     }
@@ -115,15 +167,7 @@ class HomeApiClient {
     if (response.status >= 500) {
       throw new import_errors.ServiceUnavailableError(response.status);
     }
-    const text = await response.text();
-    if (!response.ok) {
-      throw new import_errors.ApiError(`HTTP ${response.status}: ${errorMessage(text)}`, response.status);
-    }
-    try {
-      return JSON.parse(text);
-    } catch {
-      throw new import_errors.ApiError("Invalid JSON in answer", response.status);
-    }
+    throw new import_errors.ApiError(`HTTP ${response.status}: ${errorMessage(text)}`, response.status);
   }
 }
 function errorMessage(text) {

@@ -6,6 +6,7 @@
 import * as utils from '@iobroker/adapter-core';
 import { HomeApiClient, normalizeApiKey } from './lib/api/client';
 import { AbortedError, DeviceUnreachableError, KeyRejectedError, describeError } from './lib/api/errors';
+import { SseStream, type Scheduler } from './lib/api/sse';
 import { DeviceStore } from './lib/model/device-store';
 import { POLL_DEFAULT_S, pollIntervalSeconds } from './lib/util/config';
 import { createSalt, isValidSalt } from './lib/util/device-key';
@@ -21,6 +22,14 @@ class LiebherrHome extends utils.Adapter {
     private retrySeconds = RETRY_START_S;
     private connectionState: boolean | undefined;
     private firstSync = true;
+    private readonly streams = new Map<string, SseStream>();
+    private readonly openStreams = new Set<string>();
+    private realtimeState: boolean | undefined;
+    private keyRejected = false;
+    private readonly scheduler: Scheduler = {
+        setTimeout: (callback, ms) => this.setTimeout(callback, ms),
+        clearTimeout: handle => this.clearTimeout(handle as ioBroker.Timeout | undefined),
+    };
 
     public constructor(options: Partial<utils.AdapterOptions> = {}) {
         super({
@@ -36,6 +45,7 @@ class LiebherrHome extends utils.Adapter {
      */
     private async onReady(): Promise<void> {
         await this.setState('info.connection', false, true);
+        await this.setState('info.realtime', false, true);
 
         const apiKey = normalizeApiKey(this.config.apiKey);
         if (!apiKey) {
@@ -71,12 +81,12 @@ class LiebherrHome extends utils.Adapter {
 
     /**
      * One polling cycle: device list (discovery), then the controls of every device.
-     * Phase 4 adds SSE for real time; polling stays as resync.
+     * With real-time updates enabled the SSE streams deliver changes; polling stays as resync.
      */
     private async poll(): Promise<void> {
         this.timer = undefined;
         const { client, store } = this;
-        if (!client || !store) {
+        if (!client || !store || this.keyRejected) {
             return;
         }
         try {
@@ -91,6 +101,9 @@ class LiebherrHome extends utils.Adapter {
             for (const key of keys) {
                 await this.pollDevice(client, store, key);
             }
+            if (this.config.useSse) {
+                this.syncStreams(client, store, keys);
+            }
             this.retrySeconds = RETRY_START_S;
             this.schedule(this.pollSeconds);
         } catch (error) {
@@ -99,10 +112,7 @@ class LiebherrHome extends utils.Adapter {
             }
             await this.setConnected(false);
             if (error instanceof KeyRejectedError) {
-                // retrying cannot help - a config change restarts the instance
-                this.log.error(
-                    `${error.message}. Check the key in the instance settings; creating a new key in the app invalidates the old one.`,
-                );
+                await this.onKeyRejected(error.message);
                 return;
             }
             this.log.warn(`${describeError(error)} - retrying in ${this.retrySeconds} s`);
@@ -168,6 +178,94 @@ class LiebherrHome extends utils.Adapter {
     }
 
     /**
+     * Starts a real-time stream for every device in the list and stops streams of devices
+     * that left the account.
+     *
+     * @param client - API client
+     * @param store - Object store
+     * @param keys - Keys of the current device list
+     */
+    private syncStreams(client: HomeApiClient, store: DeviceStore, keys: string[]): void {
+        const current = new Set(keys);
+        for (const [key, stream] of this.streams) {
+            if (!current.has(key)) {
+                stream.stop();
+                this.streams.delete(key);
+                this.openStreams.delete(key);
+            }
+        }
+        for (const key of keys) {
+            const deviceId = store.deviceIdOf(key);
+            if (this.streams.has(key) || !deviceId) {
+                continue;
+            }
+            const stream = new SseStream(
+                client,
+                deviceId,
+                store.nameOf(key),
+                {
+                    onControls: async controls => {
+                        await store.applyControls(key, controls);
+                        await store.setReachable(key, true);
+                    },
+                    onOpen: open => {
+                        if (open) {
+                            this.openStreams.add(key);
+                        } else {
+                            this.openStreams.delete(key);
+                        }
+                        void this.updateRealtime();
+                    },
+                    onUnreachable: () => void store.setReachable(key, false),
+                    onKeyRejected: () => void this.onKeyRejected('Liebherr HomeAPI rejected the API key (HTTP 401)'),
+                },
+                this.log,
+                { scheduler: this.scheduler },
+            );
+            this.streams.set(key, stream);
+            stream.start();
+        }
+        void this.updateRealtime();
+    }
+
+    private stopStreams(): void {
+        for (const stream of this.streams.values()) {
+            stream.stop();
+        }
+        this.streams.clear();
+        this.openStreams.clear();
+    }
+
+    /** info.realtime: true while the streams of all devices are open */
+    private async updateRealtime(): Promise<void> {
+        const realtime = this.streams.size > 0 && this.openStreams.size === this.streams.size;
+        if (this.realtimeState !== realtime) {
+            this.realtimeState = realtime;
+            await this.setState('info.realtime', realtime, true);
+        }
+    }
+
+    /**
+     * Retrying cannot help with a rejected key - a config change restarts the instance.
+     *
+     * @param message - Error message
+     */
+    private async onKeyRejected(message: string): Promise<void> {
+        if (this.keyRejected) {
+            return; // already reported (poll and streams can both run into the 401)
+        }
+        this.keyRejected = true;
+        this.stopStreams();
+        this.clearTimeout(this.timer);
+        this.timer = undefined;
+        await this.setConnected(false);
+        await this.updateRealtime();
+        this.log.error(
+            `${message}. Check the key in the instance settings; creating a new key in the app invalidates the old one.`,
+        );
+    }
+
+    /**
      * @param seconds - Delay until the next polling cycle
      */
     private schedule(seconds: number): void {
@@ -191,6 +289,7 @@ class LiebherrHome extends utils.Adapter {
      */
     private onUnload(callback: () => void): void {
         try {
+            this.stopStreams();
             this.client?.close();
             this.clearTimeout(this.timer);
             callback();

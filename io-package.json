@@ -120,6 +120,19 @@
                 "def": false
             },
             "native": {}
+        },
+        {
+            "_id": "info.realtime",
+            "type": "state",
+            "common": {
+                "role": "indicator.connected",
+                "name": "Real-time streams of all devices open",
+                "type": "boolean",
+                "read": true,
+                "write": false,
+                "def": false
+            },
+            "native": {}
         }
     ]
 }
