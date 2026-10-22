@@ -8,5 +8,8 @@
     "Real-time updates (SSE)": "Real-time updates (SSE)",
     "Polling is used as fallback if the real-time connection fails": "Polling is used as fallback if the real-time connection fails",
     "Polling interval": "Polling interval",
-    "Seconds, minimum 60": "Seconds, minimum 60"
+    "Seconds, minimum 60": "Seconds, minimum 60",
+    "Commands": "Commands",
+    "Allow opening and closing automatic doors": "Allow opening and closing automatic doors",
+    "Creates a command state per door. The door moves physically - only enable this if nobody can get hurt.": "Creates a command state per door. The door moves physically - only enable this if nobody can get hurt."
 }

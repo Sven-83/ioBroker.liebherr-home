@@ -1,7 +1,10 @@
 {
     "API key": "API-ключ",
+    "Allow opening and closing automatic doors": "Разрешить открытие и закрытие автоматических дверей",
+    "Commands": "Команды",
     "Connection": "Связь",
     "Create the key in the SmartDevice app under Settings - HomeAPI. It is shown only once.": "Создайте ключ в приложении SmartDevice в разделе «Настройки» — «HomeAPI». Оно отображается только один раз.",
+    "Creates a command state per door. The door moves physically - only enable this if nobody can get hurt.": "Создает состояние команды для каждой двери. Дверь движется физически — включайте это только в том случае, если никто не может пострадать.",
     "Liebherr SmartDevice": "Смарт-устройство Либхерр",
     "Please enter the API key": "Пожалуйста, введите ключ API",
     "Polling interval": "Интервал опроса",

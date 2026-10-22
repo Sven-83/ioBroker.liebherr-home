@@ -18,9 +18,11 @@ var __copyProps = (to, from, except, desc) => {
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 var mapper_exports = {};
 __export(mapper_exports, {
+  WRITABLE_TOGGLES: () => WRITABLE_TOGGLES,
   mapControl: () => mapControl
 });
 module.exports = __toCommonJS(mapper_exports);
+const WRITABLE_TOGGLES = /* @__PURE__ */ new Set(["supercool", "superfrost", "nightmode", "partymode"]);
 const ZONE_POSITIONS = /* @__PURE__ */ new Set(["top", "middle", "bottom"]);
 function safeIdPart(value) {
   return value.toLowerCase().replace(/[^a-z0-9_-]/g, "_").slice(0, 50);
@@ -55,7 +57,15 @@ function enumState(base, name, native, values, current, role = "level.mode") {
     writable: true
   };
 }
-function mapControl(control) {
+function mapControl(control, options = {}) {
+  var _a;
+  const mapped = mapKnownControl(control, options);
+  for (const state of (_a = mapped == null ? void 0 : mapped.states) != null ? _a : []) {
+    state.common.write = state.writable;
+  }
+  return mapped;
+}
+function mapKnownControl(control, options) {
   if (typeof control !== "object" || control === null || typeof control.type !== "string") {
     return void 0;
   }
@@ -115,10 +125,16 @@ function mapControl(control) {
         states: [
           {
             id: `${base}.${safeIdPart(name)}`,
-            common: { name, type: "boolean", role: "switch", read: true, write: false },
+            common: {
+              name,
+              type: "boolean",
+              role: WRITABLE_TOGGLES.has(native.control) ? "switch" : "indicator",
+              read: true,
+              write: false
+            },
             native,
             value: typeof control.value === "boolean" ? control.value : null,
-            writable: true
+            writable: WRITABLE_TOGGLES.has(native.control)
           }
         ]
       };
@@ -153,7 +169,22 @@ function mapControl(control) {
           {
             ...enumState(base, "autodoor", native, ["CLOSED", "OPEN", "MOVING"], control.value, "value"),
             writable: false
-          }
+          },
+          ...options.autoDoor ? [
+            {
+              id: `${base}.autodoorCommand`,
+              common: {
+                name: "Open (true) or close (false) the door",
+                type: "boolean",
+                role: "switch",
+                read: true,
+                write: true
+              },
+              native,
+              value: null,
+              writable: true
+            }
+          ] : []
         ]
       };
     case "PresentationLightControl":
@@ -201,6 +232,7 @@ function rawControl(control, name, zoneId) {
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  WRITABLE_TOGGLES,
   mapControl
 });
 //# sourceMappingURL=mapper.js.map

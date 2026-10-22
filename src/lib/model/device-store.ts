@@ -8,7 +8,8 @@
 import type { Device, DeviceControl } from '../api/types';
 import { deviceKey } from '../util/device-key';
 import { stripLineBreaks } from '../util/redact';
-import { mapControl, type StateValue } from './mapper';
+import { mapControl, type MapOptions, type StateValue } from './mapper';
+import type { StateInfo } from './writer';
 
 /** What the store needs from the adapter */
 export interface ObjectSink {
@@ -56,17 +57,64 @@ export class DeviceStore {
     private readonly values = new Map<string, StateValue>();
     private readonly reachable = new Map<string, boolean>();
     private readonly reportedUnknown = new Set<string>();
+    /** common/native of every control state mapped in this run, for commands */
+    private readonly infos = new Map<string, StateInfo>();
 
     /**
      * @param sink - Object/state access of the adapter
      * @param log - Logger
      * @param salt - Instance salt for the device keys
+     * @param options - Mapping options from the instance config
      */
     public constructor(
         private readonly sink: ObjectSink,
         private readonly log: Logger,
         private readonly salt: string,
+        private readonly options: MapOptions = {},
     ) {}
+
+    /**
+     * Object data of a control state, undefined until the device was read in this run.
+     *
+     * @param id - State ID relative to the instance
+     */
+    public stateInfo(id: string): StateInfo | undefined {
+        return this.infos.get(id);
+    }
+
+    /**
+     * Last value confirmed by the cloud.
+     *
+     * @param id - State ID relative to the instance
+     */
+    public valueOf(id: string): StateValue | undefined {
+        return this.values.get(id);
+    }
+
+    /**
+     * Confirms a value the cloud does not report back (command states).
+     *
+     * @param id - State ID relative to the instance
+     * @param value - Value to confirm with ack=true
+     */
+    public async confirm(id: string, value: StateValue): Promise<void> {
+        this.values.delete(id);
+        await this.write(id, value);
+    }
+
+    /**
+     * Writes the last confirmed value again with ack=true, e.g. after a rejected command.
+     * Clears the state's cache, so the next reading from the cloud is written in any case.
+     *
+     * @param id - State ID relative to the instance
+     */
+    public async restore(id: string): Promise<void> {
+        const value = this.values.get(id);
+        this.values.delete(id);
+        if (value !== undefined) {
+            await this.write(id, value);
+        }
+    }
 
     /** Device keys known in this run */
     public get keys(): string[] {
@@ -130,7 +178,7 @@ export class DeviceStore {
      */
     public async applyControls(key: string, controls: DeviceControl[]): Promise<void> {
         for (const control of controls) {
-            const mapped = mapControl(control);
+            const mapped = mapControl(control, this.options);
             if (!mapped) {
                 continue;
             }
@@ -150,6 +198,7 @@ export class DeviceStore {
             for (const state of mapped.states) {
                 const id = `${key}.${state.id}`;
                 await this.ensure(id, { type: 'state', common: state.common, native: state.native });
+                this.infos.set(id, { common: state.common, native: state.native });
                 await this.write(id, state.value);
             }
         }

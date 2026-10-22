@@ -36,11 +36,13 @@ class DeviceStore {
    * @param sink - Object/state access of the adapter
    * @param log - Logger
    * @param salt - Instance salt for the device keys
+   * @param options - Mapping options from the instance config
    */
-  constructor(sink, log, salt) {
+  constructor(sink, log, salt, options = {}) {
     this.sink = sink;
     this.log = log;
     this.salt = salt;
+    this.options = options;
   }
   devices = /* @__PURE__ */ new Map();
   /** Objects written in this adapter run (common is rewritten once per start, e.g. after an update) */
@@ -48,6 +50,47 @@ class DeviceStore {
   values = /* @__PURE__ */ new Map();
   reachable = /* @__PURE__ */ new Map();
   reportedUnknown = /* @__PURE__ */ new Set();
+  /** common/native of every control state mapped in this run, for commands */
+  infos = /* @__PURE__ */ new Map();
+  /**
+   * Object data of a control state, undefined until the device was read in this run.
+   *
+   * @param id - State ID relative to the instance
+   */
+  stateInfo(id) {
+    return this.infos.get(id);
+  }
+  /**
+   * Last value confirmed by the cloud.
+   *
+   * @param id - State ID relative to the instance
+   */
+  valueOf(id) {
+    return this.values.get(id);
+  }
+  /**
+   * Confirms a value the cloud does not report back (command states).
+   *
+   * @param id - State ID relative to the instance
+   * @param value - Value to confirm with ack=true
+   */
+  async confirm(id, value) {
+    this.values.delete(id);
+    await this.write(id, value);
+  }
+  /**
+   * Writes the last confirmed value again with ack=true, e.g. after a rejected command.
+   * Clears the state's cache, so the next reading from the cloud is written in any case.
+   *
+   * @param id - State ID relative to the instance
+   */
+  async restore(id) {
+    const value = this.values.get(id);
+    this.values.delete(id);
+    if (value !== void 0) {
+      await this.write(id, value);
+    }
+  }
   /** Device keys known in this run */
   get keys() {
     return [...this.devices.keys()];
@@ -107,7 +150,7 @@ class DeviceStore {
    */
   async applyControls(key, controls) {
     for (const control of controls) {
-      const mapped = (0, import_mapper.mapControl)(control);
+      const mapped = (0, import_mapper.mapControl)(control, this.options);
       if (!mapped) {
         continue;
       }
@@ -127,6 +170,7 @@ class DeviceStore {
       for (const state of mapped.states) {
         const id = `${key}.${state.id}`;
         await this.ensure(id, { type: "state", common: state.common, native: state.native });
+        this.infos.set(id, { common: state.common, native: state.native });
         await this.write(id, state.value);
       }
     }

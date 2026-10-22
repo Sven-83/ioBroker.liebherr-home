@@ -67,10 +67,28 @@ describe('model/mapper', () => {
             ['zones.0.setpoint', 3],
         ]);
         const setpoint = states.find(s => s.id === 'zones.0.setpoint');
-        expect(setpoint?.common).to.include({ role: 'level.temperature', unit: '°C', min: 3, max: 9, write: false });
+        expect(setpoint?.common).to.include({ role: 'level.temperature', unit: '°C', min: 3, max: 9, write: true });
         expect(setpoint?.native).to.deep.equal({ control: 'temperature', zoneId: 0 });
-        expect(setpoint?.writable).to.equal(true);
-        expect(states.find(s => s.id === 'zones.0.temperature')?.writable).to.equal(false);
+        expect(states.find(s => s.id === 'zones.0.temperature')?.common.write).to.equal(false);
+        expect(states.filter(s => s.common.write).map(s => s.id)).to.deep.equal([
+            'zones.0.hydrobreeze',
+            'functions.nightmode',
+            'functions.partymode',
+            'zones.0.supercool',
+            'zones.0.setpoint',
+        ]);
+    });
+
+    it('keeps unknown toggles and the door status read-only, the door command needs the option', () => {
+        const toggle = mapControl({ type: 'ToggleControl', name: 'holidaymode', value: true });
+        expect(toggle?.states[0].common).to.include({ write: false, role: 'indicator' });
+
+        const door: DeviceControl = { type: 'AutoDoorControl', name: 'autodoor', value: 'CLOSED', zoneId: 0 };
+        expect(mapControl(door)?.states.map(s => [s.id, s.common.write])).to.deep.equal([['zones.0.autodoor', false]]);
+        expect(mapControl(door, { autoDoor: true })?.states.map(s => [s.id, s.common.write])).to.deep.equal([
+            ['zones.0.autodoor', false],
+            ['zones.0.autodoorCommand', true],
+        ]);
     });
 
     it('maps the real freezer controls with negative limits', () => {

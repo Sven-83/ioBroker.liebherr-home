@@ -1,7 +1,10 @@
 {
     "API key": "API-Key",
+    "Allow opening and closing automatic doors": "Öffnen und Schließen automatischer Türen erlauben",
+    "Commands": "Befehle",
     "Connection": "Verbindung",
     "Create the key in the SmartDevice app under Settings - HomeAPI. It is shown only once.": "Den Key in der SmartDevice-App unter Einstellungen - HomeAPI erzeugen. Er wird nur einmal angezeigt.",
+    "Creates a command state per door. The door moves physically - only enable this if nobody can get hurt.": "Legt pro Tür einen Befehls-State an. Die Tür bewegt sich tatsächlich - nur aktivieren, wenn sich niemand verletzen kann.",
     "Liebherr SmartDevice": "Liebherr SmartDevice",
     "Please enter the API key": "Bitte den API-Key eingeben",
     "Polling interval": "Abfrageintervall",

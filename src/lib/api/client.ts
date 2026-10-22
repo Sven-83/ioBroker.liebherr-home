@@ -82,18 +82,39 @@ export class HomeApiClient {
      * @param deviceId - deviceId from getDevices()
      */
     public async getControls(deviceId: string): Promise<DeviceControl[]> {
-        if (!DEVICE_ID_PATTERN.test(deviceId)) {
-            // the API answers 400 anyway - and this keeps arbitrary strings out of the URL
-            throw new ApiError('Invalid deviceId format');
-        }
-        const body = await this.getJson(`/v1/devices/${deviceId}/controls`, true);
-        if (!Array.isArray(body)) {
-            throw new ApiError('Unexpected answer for controls (no array)');
-        }
-        return body.filter(
-            (entry): entry is DeviceControl =>
-                typeof entry === 'object' && entry !== null && typeof (entry as DeviceControl).type === 'string',
+        return controlList(await this.getJson(`${devicePath(deviceId)}/controls`, true));
+    }
+
+    /**
+     * One control, used as readback after a write (GET /v1/devices/{deviceId}/controls/{name}?zoneId=).
+     *
+     * @param deviceId - deviceId from getDevices()
+     * @param control - Control name (write path)
+     * @param zoneId - Zone of zone-bound controls
+     */
+    public async getControl(deviceId: string, control: string, zoneId?: number): Promise<DeviceControl[]> {
+        const query = zoneId !== undefined ? `?zoneId=${zoneId}` : '';
+        return controlList(
+            await this.getJson(`${devicePath(deviceId)}/controls/${controlPath(control)}${query}`, true),
         );
+    }
+
+    /**
+     * Sends a command (POST /v1/devices/{deviceId}/controls/{name}, answer 204).
+     *
+     * @param deviceId - deviceId from getDevices()
+     * @param control - Control name (write path)
+     * @param body - Request body, see docs/api-abgleich.md
+     */
+    public async postControl(deviceId: string, control: string, body: Record<string, unknown>): Promise<void> {
+        const response = await this.send(
+            `${devicePath(deviceId)}/controls/${controlPath(control)}`,
+            'application/json',
+            AbortSignal.any([this.shutdown.signal, AbortSignal.timeout(this.timeoutMs)]),
+            body,
+        );
+        await this.checkStatus(response, true);
+        await response.body?.cancel().catch(() => undefined);
     }
 
     /**
@@ -105,11 +126,8 @@ export class HomeApiClient {
      * @returns The open response, body not yet read
      */
     public async openStream(deviceId: string, signal: AbortSignal): Promise<Response> {
-        if (!DEVICE_ID_PATTERN.test(deviceId)) {
-            throw new ApiError('Invalid deviceId format');
-        }
         const response = await this.send(
-            `/v1/sse/devices/${deviceId}/controls`,
+            `${devicePath(deviceId, '/v1/sse')}/controls`,
             'text/event-stream',
             AbortSignal.any([this.shutdown.signal, signal]),
         );
@@ -147,15 +165,21 @@ export class HomeApiClient {
      * @param path - Path below the base URL
      * @param accept - Accept header
      * @param signal - Abort signal (shutdown, timeout, caller)
+     * @param body - JSON body - turns the request into a POST
      */
-    private async send(path: string, accept: string, signal: AbortSignal): Promise<Response> {
+    private async send(path: string, accept: string, signal: AbortSignal, body?: unknown): Promise<Response> {
         if (this.shutdown.signal.aborted) {
             throw new AbortedError();
         }
+        const headers: Record<string, string> = { 'api-key': this.apiKey, accept };
+        if (body !== undefined) {
+            headers['content-type'] = 'application/json';
+        }
         try {
             return await this.fetchFn(`${this.baseUrl}${path}`, {
-                method: 'GET',
-                headers: { 'api-key': this.apiKey, accept },
+                method: body === undefined ? 'GET' : 'POST',
+                headers,
+                ...(body === undefined ? {} : { body: JSON.stringify(body) }),
                 signal,
             });
         } catch (error) {
@@ -196,6 +220,45 @@ export class HomeApiClient {
         }
         throw new ApiError(`HTTP ${response.status}: ${errorMessage(text)}`, response.status);
     }
+}
+
+/**
+ * Path of a device; validating the format keeps arbitrary strings out of the URL
+ * (the API would answer 400 anyway).
+ *
+ * @param deviceId - deviceId from getDevices()
+ * @param prefix - "/v1" for REST, "/v1/sse" for the stream
+ */
+function devicePath(deviceId: string, prefix = '/v1'): string {
+    if (!DEVICE_ID_PATTERN.test(deviceId)) {
+        throw new ApiError('Invalid deviceId format');
+    }
+    return `${prefix}/devices/${deviceId}`;
+}
+
+/**
+ * Control names come from our own mapping, but are still checked before they reach a URL.
+ *
+ * @param control - Control name
+ */
+function controlPath(control: string): string {
+    if (!/^[a-z]{1,40}$/.test(control)) {
+        throw new ApiError('Invalid control name');
+    }
+    return control;
+}
+
+/**
+ * @param body - Parsed answer of a controls request
+ */
+function controlList(body: unknown): DeviceControl[] {
+    if (!Array.isArray(body)) {
+        throw new ApiError('Unexpected answer for controls (no array)');
+    }
+    return body.filter(
+        (entry): entry is DeviceControl =>
+            typeof entry === 'object' && entry !== null && typeof (entry as DeviceControl).type === 'string',
+    );
 }
 
 /**

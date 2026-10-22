@@ -7,6 +7,7 @@ import * as utils from '@iobroker/adapter-core';
 import { HomeApiClient, normalizeApiKey } from './lib/api/client';
 import { AbortedError, DeviceUnreachableError, KeyRejectedError, describeError } from './lib/api/errors';
 import { SseStream, type Scheduler } from './lib/api/sse';
+import { CommandHandler } from './lib/model/commands';
 import { DeviceStore } from './lib/model/device-store';
 import { POLL_DEFAULT_S, pollIntervalSeconds } from './lib/util/config';
 import { createSalt, isValidSalt } from './lib/util/device-key';
@@ -17,6 +18,7 @@ const RETRY_START_S = 60;
 class LiebherrHome extends utils.Adapter {
     private client: HomeApiClient | undefined;
     private store: DeviceStore | undefined;
+    private commands: CommandHandler | undefined;
     private timer: ioBroker.Timeout | undefined;
     private pollSeconds = POLL_DEFAULT_S;
     private retrySeconds = RETRY_START_S;
@@ -37,6 +39,7 @@ class LiebherrHome extends utils.Adapter {
             name: 'liebherr-home',
         });
         this.on('ready', this.onReady.bind(this));
+        this.on('stateChange', this.onStateChange.bind(this));
         this.on('unload', this.onUnload.bind(this));
     }
 
@@ -75,8 +78,24 @@ class LiebherrHome extends utils.Adapter {
             },
             this.log,
             this.config.deviceSalt,
+            { autoDoor: this.config.allowAutoDoor === true },
         );
+        this.commands = new CommandHandler(this.client, this.store, this.log, this.scheduler);
+        this.subscribeStates('*');
         await this.poll();
+    }
+
+    /**
+     * Commands from ioBroker (ack=false) go to the command handler; it confirms with ack=true.
+     *
+     * @param id - Full state ID
+     * @param state - State object
+     */
+    private onStateChange(id: string, state: ioBroker.State | null | undefined): void {
+        if (!state || state.ack || !this.commands) {
+            return;
+        }
+        this.commands.handle(id.slice(this.namespace.length + 1), state.val);
     }
 
     /**
@@ -289,6 +308,7 @@ class LiebherrHome extends utils.Adapter {
      */
     private onUnload(callback: () => void): void {
         try {
+            this.commands?.stop();
             this.stopStreams();
             this.client?.close();
             this.clearTimeout(this.timer);

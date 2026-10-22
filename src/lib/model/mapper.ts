@@ -1,9 +1,8 @@
 /*
  * Maps HomeAPI controls to ioBroker objects and values (pure functions, no adapter access).
  *
- * Every state carries native.control/native.zoneId, so phase 5 (writes) knows the write
- * path without a second lookup. "writable" marks what phase 5 will open for writing;
- * until then common.write stays false.
+ * Every state carries native.control/native.zoneId, so writes (writer.ts) know the write
+ * path without a second lookup. "writable" sets common.write.
  */
 
 import type { DeviceControl } from '../api/types';
@@ -31,9 +30,18 @@ export interface MappedState {
     native: ControlNative;
     /** Current value */
     value: StateValue;
-    /** Will be writable in phase 5 */
+    /** Accepts commands (common.write) */
     writable: boolean;
 }
+
+/** Options from the instance config */
+export interface MapOptions {
+    /** Create the command state that opens/closes an automatic door */
+    autoDoor?: boolean;
+}
+
+/** Toggle names with a documented write path - unknown toggles stay read-only */
+export const WRITABLE_TOGGLES = new Set(['supercool', 'superfrost', 'nightmode', 'partymode']);
 
 /** One channel derived from a control */
 export interface MappedChannel {
@@ -124,8 +132,21 @@ function enumState(
  * Maps one control. Returns undefined for entries that are no valid control at all.
  *
  * @param control - Entry from /controls or from an SSE event
+ * @param options - Options from the instance config
  */
-export function mapControl(control: DeviceControl): MappedControl | undefined {
+export function mapControl(control: DeviceControl, options: MapOptions = {}): MappedControl | undefined {
+    const mapped = mapKnownControl(control, options);
+    for (const state of mapped?.states ?? []) {
+        state.common.write = state.writable;
+    }
+    return mapped;
+}
+
+/**
+ * @param control - Entry from /controls or from an SSE event
+ * @param options - Options from the instance config
+ */
+function mapKnownControl(control: DeviceControl, options: MapOptions): MappedControl | undefined {
     if (typeof control !== 'object' || control === null || typeof control.type !== 'string') {
         return undefined;
     }
@@ -189,10 +210,16 @@ export function mapControl(control: DeviceControl): MappedControl | undefined {
                 states: [
                     {
                         id: `${base}.${safeIdPart(name)}`,
-                        common: { name, type: 'boolean', role: 'switch', read: true, write: false },
+                        common: {
+                            name,
+                            type: 'boolean',
+                            role: WRITABLE_TOGGLES.has(native.control) ? 'switch' : 'indicator',
+                            read: true,
+                            write: false,
+                        },
                         native,
                         value: typeof control.value === 'boolean' ? control.value : null,
-                        writable: true,
+                        writable: WRITABLE_TOGGLES.has(native.control),
                     },
                 ],
             };
@@ -225,7 +252,7 @@ export function mapControl(control: DeviceControl): MappedControl | undefined {
             if (!zone) {
                 break;
             }
-            // status only; opening/closing gets its own command state behind a config option (phase 5)
+            // status read-only; the door moves physically, so commands need the config option
             return {
                 channels,
                 states: [
@@ -233,6 +260,23 @@ export function mapControl(control: DeviceControl): MappedControl | undefined {
                         ...enumState(base, 'autodoor', native, ['CLOSED', 'OPEN', 'MOVING'], control.value, 'value'),
                         writable: false,
                     },
+                    ...(options.autoDoor
+                        ? [
+                              {
+                                  id: `${base}.autodoorCommand`,
+                                  common: {
+                                      name: 'Open (true) or close (false) the door',
+                                      type: 'boolean' as const,
+                                      role: 'switch',
+                                      read: true,
+                                      write: true,
+                                  },
+                                  native,
+                                  value: null,
+                                  writable: true,
+                              },
+                          ]
+                        : []),
                 ],
             };
         case 'PresentationLightControl':

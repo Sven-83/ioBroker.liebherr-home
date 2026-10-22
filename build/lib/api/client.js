@@ -64,16 +64,38 @@ class HomeApiClient {
    * @param deviceId - deviceId from getDevices()
    */
   async getControls(deviceId) {
-    if (!import_redact.DEVICE_ID_PATTERN.test(deviceId)) {
-      throw new import_errors.ApiError("Invalid deviceId format");
-    }
-    const body = await this.getJson(`/v1/devices/${deviceId}/controls`, true);
-    if (!Array.isArray(body)) {
-      throw new import_errors.ApiError("Unexpected answer for controls (no array)");
-    }
-    return body.filter(
-      (entry) => typeof entry === "object" && entry !== null && typeof entry.type === "string"
+    return controlList(await this.getJson(`${devicePath(deviceId)}/controls`, true));
+  }
+  /**
+   * One control, used as readback after a write (GET /v1/devices/{deviceId}/controls/{name}?zoneId=).
+   *
+   * @param deviceId - deviceId from getDevices()
+   * @param control - Control name (write path)
+   * @param zoneId - Zone of zone-bound controls
+   */
+  async getControl(deviceId, control, zoneId) {
+    const query = zoneId !== void 0 ? `?zoneId=${zoneId}` : "";
+    return controlList(
+      await this.getJson(`${devicePath(deviceId)}/controls/${controlPath(control)}${query}`, true)
     );
+  }
+  /**
+   * Sends a command (POST /v1/devices/{deviceId}/controls/{name}, answer 204).
+   *
+   * @param deviceId - deviceId from getDevices()
+   * @param control - Control name (write path)
+   * @param body - Request body, see docs/api-abgleich.md
+   */
+  async postControl(deviceId, control, body) {
+    var _a;
+    const response = await this.send(
+      `${devicePath(deviceId)}/controls/${controlPath(control)}`,
+      "application/json",
+      AbortSignal.any([this.shutdown.signal, AbortSignal.timeout(this.timeoutMs)]),
+      body
+    );
+    await this.checkStatus(response, true);
+    await ((_a = response.body) == null ? void 0 : _a.cancel().catch(() => void 0));
   }
   /**
    * Opens the SSE stream of one device (GET /v1/sse/devices/{deviceId}/controls).
@@ -84,11 +106,8 @@ class HomeApiClient {
    * @returns The open response, body not yet read
    */
   async openStream(deviceId, signal) {
-    if (!import_redact.DEVICE_ID_PATTERN.test(deviceId)) {
-      throw new import_errors.ApiError("Invalid deviceId format");
-    }
     const response = await this.send(
-      `/v1/sse/devices/${deviceId}/controls`,
+      `${devicePath(deviceId, "/v1/sse")}/controls`,
       "text/event-stream",
       AbortSignal.any([this.shutdown.signal, signal])
     );
@@ -103,13 +122,13 @@ class HomeApiClient {
    * @param path - Path below the base URL
    * @param devicePath - 404 means "device not reachable" on device paths
    */
-  async getJson(path, devicePath = false) {
+  async getJson(path, devicePath2 = false) {
     const response = await this.send(
       path,
       "application/json",
       AbortSignal.any([this.shutdown.signal, AbortSignal.timeout(this.timeoutMs)])
     );
-    await this.checkStatus(response, devicePath);
+    await this.checkStatus(response, devicePath2);
     const text = await response.text();
     try {
       return JSON.parse(text);
@@ -123,15 +142,21 @@ class HomeApiClient {
    * @param path - Path below the base URL
    * @param accept - Accept header
    * @param signal - Abort signal (shutdown, timeout, caller)
+   * @param body - JSON body - turns the request into a POST
    */
-  async send(path, accept, signal) {
+  async send(path, accept, signal, body) {
     if (this.shutdown.signal.aborted) {
       throw new import_errors.AbortedError();
     }
+    const headers = { "api-key": this.apiKey, accept };
+    if (body !== void 0) {
+      headers["content-type"] = "application/json";
+    }
     try {
       return await this.fetchFn(`${this.baseUrl}${path}`, {
-        method: "GET",
-        headers: { "api-key": this.apiKey, accept },
+        method: body === void 0 ? "GET" : "POST",
+        headers,
+        ...body === void 0 ? {} : { body: JSON.stringify(body) },
         signal
       });
     } catch (error) {
@@ -150,7 +175,7 @@ class HomeApiClient {
    * @param response - Answer
    * @param devicePath - 404 means "device not reachable" on device paths
    */
-  async checkStatus(response, devicePath) {
+  async checkStatus(response, devicePath2) {
     if (response.ok) {
       return;
     }
@@ -158,7 +183,7 @@ class HomeApiClient {
     if (response.status === 401) {
       throw new import_errors.KeyRejectedError();
     }
-    if (response.status === 404 && devicePath) {
+    if (response.status === 404 && devicePath2) {
       throw new import_errors.DeviceUnreachableError();
     }
     if (response.status === 429) {
@@ -169,6 +194,26 @@ class HomeApiClient {
     }
     throw new import_errors.ApiError(`HTTP ${response.status}: ${errorMessage(text)}`, response.status);
   }
+}
+function devicePath(deviceId, prefix = "/v1") {
+  if (!import_redact.DEVICE_ID_PATTERN.test(deviceId)) {
+    throw new import_errors.ApiError("Invalid deviceId format");
+  }
+  return `${prefix}/devices/${deviceId}`;
+}
+function controlPath(control) {
+  if (!/^[a-z]{1,40}$/.test(control)) {
+    throw new import_errors.ApiError("Invalid control name");
+  }
+  return control;
+}
+function controlList(body) {
+  if (!Array.isArray(body)) {
+    throw new import_errors.ApiError("Unexpected answer for controls (no array)");
+  }
+  return body.filter(
+    (entry) => typeof entry === "object" && entry !== null && typeof entry.type === "string"
+  );
 }
 function errorMessage(text) {
   var _a;

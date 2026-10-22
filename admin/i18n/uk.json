@@ -1,7 +1,10 @@
 {
     "API key": "Ключ API",
+    "Allow opening and closing automatic doors": "Дозволяє відкривати та закривати автоматичні двері",
+    "Commands": "Команди",
     "Connection": "Підключення",
     "Create the key in the SmartDevice app under Settings - HomeAPI. It is shown only once.": "Створіть ключ у програмі SmartDevice у розділі Налаштування - HomeAPI. Показується лише один раз.",
+    "Creates a command state per door. The door moves physically - only enable this if nobody can get hurt.": "Створює командний стан для кожної двері. Двері рухаються фізично - увімкніть це, лише якщо ніхто не може постраждати.",
     "Liebherr SmartDevice": "Liebherr SmartDevice",
     "Please enter the API key": "Будь ласка, введіть ключ API",
     "Polling interval": "Інтервал опитування",

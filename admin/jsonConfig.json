@@ -38,6 +38,23 @@
             "lg": 4,
             "xl": 4
         },
+        "_headerCommands": {
+            "type": "header",
+            "text": "Commands",
+            "size": 2,
+            "newLine": true
+        },
+        "allowAutoDoor": {
+            "type": "checkbox",
+            "label": "Allow opening and closing automatic doors",
+            "help": "Creates a command state per door. The door moves physically - only enable this if nobody can get hurt.",
+            "newLine": true,
+            "xs": 12,
+            "sm": 12,
+            "md": 8,
+            "lg": 6,
+            "xl": 6
+        },
         "pollInterval": {
             "type": "number",
             "label": "Polling interval",

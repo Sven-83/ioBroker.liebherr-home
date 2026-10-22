@@ -25,6 +25,7 @@ var utils = __toESM(require("@iobroker/adapter-core"));
 var import_client = require("./lib/api/client");
 var import_errors = require("./lib/api/errors");
 var import_sse = require("./lib/api/sse");
+var import_commands = require("./lib/model/commands");
 var import_device_store = require("./lib/model/device-store");
 var import_config = require("./lib/util/config");
 var import_device_key = require("./lib/util/device-key");
@@ -32,6 +33,7 @@ const RETRY_START_S = 60;
 class LiebherrHome extends utils.Adapter {
   client;
   store;
+  commands;
   timer;
   pollSeconds = import_config.POLL_DEFAULT_S;
   retrySeconds = RETRY_START_S;
@@ -51,6 +53,7 @@ class LiebherrHome extends utils.Adapter {
       name: "liebherr-home"
     });
     this.on("ready", this.onReady.bind(this));
+    this.on("stateChange", this.onStateChange.bind(this));
     this.on("unload", this.onUnload.bind(this));
   }
   /**
@@ -83,9 +86,24 @@ class LiebherrHome extends utils.Adapter {
         }
       },
       this.log,
-      this.config.deviceSalt
+      this.config.deviceSalt,
+      { autoDoor: this.config.allowAutoDoor === true }
     );
+    this.commands = new import_commands.CommandHandler(this.client, this.store, this.log, this.scheduler);
+    this.subscribeStates("*");
     await this.poll();
+  }
+  /**
+   * Commands from ioBroker (ack=false) go to the command handler; it confirms with ack=true.
+   *
+   * @param id - Full state ID
+   * @param state - State object
+   */
+  onStateChange(id, state) {
+    if (!state || state.ack || !this.commands) {
+      return;
+    }
+    this.commands.handle(id.slice(this.namespace.length + 1), state.val);
   }
   /**
    * One polling cycle: device list (discovery), then the controls of every device.
@@ -285,10 +303,11 @@ class LiebherrHome extends utils.Adapter {
    * @param callback - Callback function
    */
   onUnload(callback) {
-    var _a;
+    var _a, _b;
     try {
+      (_a = this.commands) == null ? void 0 : _a.stop();
       this.stopStreams();
-      (_a = this.client) == null ? void 0 : _a.close();
+      (_b = this.client) == null ? void 0 : _b.close();
       this.clearTimeout(this.timer);
       callback();
     } catch (error) {
