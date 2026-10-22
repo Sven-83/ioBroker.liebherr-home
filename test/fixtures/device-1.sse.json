@@ -1,0 +1,170 @@
+{
+  "path": "/v1/sse/devices/DEVICE-1/controls",
+  "seconds": 90,
+  "status": 200,
+  "headers": {
+    "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+    "connection": "keep-alive",
+    "content-type": "text/event-stream;charset=UTF-8",
+    "date": "Tue, 20 Oct 2026 21:00:04 GMT",
+    "expires": "0",
+    "pragma": "no-cache",
+    "referrer-policy": "no-referrer",
+    "strict-transport-security": "max-age=31536000; includeSubDomains",
+    "transfer-encoding": "chunked",
+    "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY",
+    "x-xss-protection": "0"
+  },
+  "lines": [
+    {
+      "t": 556,
+      "line": "event:device-update"
+    },
+    {
+      "t": 556,
+      "line": "data:[{\"type\":\"HydroBreezeControl\",\"currentMode\":\"HIGH\",\"name\":\"hydrobreeze\",\"zoneId\":0,\"zonePosition\":\"top\"},{\"type\":\"ToggleControl\",\"name\":\"nightmode\",\"value\":false},{\"type\":\"ToggleControl\",\"name\":\"…"
+    },
+    {
+      "t": 556,
+      "line": ""
+    },
+    {
+      "t": 20013,
+      "line": "event:device-update"
+    },
+    {
+      "t": 20013,
+      "line": "data:[{\"type\":\"ToggleControl\",\"name\":\"nightmode\",\"value\":false},{\"type\":\"ToggleControl\",\"name\":\"partymode\",\"value\":true}]"
+    },
+    {
+      "t": 20013,
+      "line": ""
+    },
+    {
+      "t": 20410,
+      "line": "event:device-update"
+    },
+    {
+      "t": 20410,
+      "line": "data:[{\"type\":\"HydroBreezeControl\",\"currentMode\":\"HIGH\",\"name\":\"hydrobreeze\",\"zoneId\":0,\"zonePosition\":\"top\"},{\"type\":\"ToggleControl\",\"name\":\"supercool\",\"value\":true,\"zoneId\":0,\"zonePosition\":\"top\"},{…"
+    },
+    {
+      "t": 20410,
+      "line": ""
+    },
+    {
+      "t": 30507,
+      "line": ":keep-alive"
+    },
+    {
+      "t": 30507,
+      "line": ""
+    },
+    {
+      "t": 60461,
+      "line": ":keep-alive"
+    },
+    {
+      "t": 60461,
+      "line": ""
+    }
+  ],
+  "events": [
+    {
+      "t": 556,
+      "event": "device-update",
+      "data": [
+        {
+          "type": "HydroBreezeControl",
+          "currentMode": "HIGH",
+          "name": "hydrobreeze",
+          "zoneId": 0,
+          "zonePosition": "top"
+        },
+        {
+          "type": "ToggleControl",
+          "name": "nightmode",
+          "value": false
+        },
+        {
+          "type": "ToggleControl",
+          "name": "partymode",
+          "value": false
+        },
+        {
+          "type": "ToggleControl",
+          "name": "supercool",
+          "value": false,
+          "zoneId": 0,
+          "zonePosition": "top"
+        },
+        {
+          "type": "TemperatureControl",
+          "max": 9,
+          "min": 3,
+          "name": "temperature",
+          "setTemperatureSteps": [],
+          "setTemperatureStepsEnabled": false,
+          "target": 3,
+          "unit": "°C",
+          "value": 3,
+          "zoneId": 0,
+          "zonePosition": "top"
+        }
+      ]
+    },
+    {
+      "t": 20013,
+      "event": "device-update",
+      "data": [
+        {
+          "type": "ToggleControl",
+          "name": "nightmode",
+          "value": false
+        },
+        {
+          "type": "ToggleControl",
+          "name": "partymode",
+          "value": true
+        }
+      ]
+    },
+    {
+      "t": 20410,
+      "event": "device-update",
+      "data": [
+        {
+          "type": "HydroBreezeControl",
+          "currentMode": "HIGH",
+          "name": "hydrobreeze",
+          "zoneId": 0,
+          "zonePosition": "top"
+        },
+        {
+          "type": "ToggleControl",
+          "name": "supercool",
+          "value": true,
+          "zoneId": 0,
+          "zonePosition": "top"
+        },
+        {
+          "type": "TemperatureControl",
+          "max": 9,
+          "min": 3,
+          "name": "temperature",
+          "setTemperatureSteps": [],
+          "setTemperatureStepsEnabled": false,
+          "target": 3,
+          "unit": "°C",
+          "value": 3,
+          "zoneId": 0,
+          "zonePosition": "top"
+        }
+      ]
+    }
+  ],
+  "end": "timeout (planmäßig)",
+  "durationMs": 90011
+}

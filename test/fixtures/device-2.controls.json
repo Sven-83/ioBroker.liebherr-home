@@ -1,0 +1,22 @@
+[
+  {
+    "type": "ToggleControl",
+    "name": "superfrost",
+    "value": false,
+    "zoneId": 0,
+    "zonePosition": "top"
+  },
+  {
+    "type": "TemperatureControl",
+    "max": -14,
+    "min": -28,
+    "name": "temperature",
+    "setTemperatureSteps": [],
+    "setTemperatureStepsEnabled": false,
+    "target": -18,
+    "unit": "°C",
+    "value": -18,
+    "zoneId": 0,
+    "zonePosition": "top"
+  }
+]

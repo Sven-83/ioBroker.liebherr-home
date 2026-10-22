@@ -1,0 +1,15 @@
+2026-10-20T20:53:46.078Z Node v24.20.0, win32, TTY=true, SSE 90 s
+2026-10-20T21:00:03.127Z Key: Quelle=Prompt, Länge roh=42, bereinigt=42
+2026-10-20T21:00:03.127Z GET /v1/devices …
+2026-10-20T21:00:03.603Z → 200 (475 ms)
+2026-10-20T21:00:03.603Z Gerät 1: FRIDGE / IRBbi 4170-150 2
+2026-10-20T21:00:04.052Z controls → 200, 5 Einträge
+2026-10-20T21:00:04.458Z Gerät 2: FREEZER / GNP 3755-107 2
+2026-10-20T21:00:04.858Z controls → 200, 2 Einträge
+2026-10-20T21:00:05.422Z Ungültiger Key → 401
+2026-10-20T21:00:05.677Z Unbekanntes Gerät → 400
+2026-10-20T21:00:05.677Z SSE für 2 Gerät(e), 90 s … (gern jetzt in der App etwas umschalten, z. B. Party-Mode an/aus)
+2026-10-20T21:01:35.689Z Gerät 1: Status 200, 3 Events, 13 Zeilen, Ende: timeout (planmäßig)
+2026-10-20T21:01:35.689Z Gerät 2: Status 200, 1 Events, 7 Zeilen, Ende: timeout (planmäßig)
+2026-10-20T21:01:35.708Z 14 Dateien geschrieben nach test/fixtures
+2026-10-20T21:01:35.708Z Bitte vor dem Commit kurz drüberschauen (Seriennummern, Namen).

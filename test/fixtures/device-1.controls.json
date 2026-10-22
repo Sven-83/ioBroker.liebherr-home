@@ -1,0 +1,39 @@
+[
+  {
+    "type": "HydroBreezeControl",
+    "currentMode": "HIGH",
+    "name": "hydrobreeze",
+    "zoneId": 0,
+    "zonePosition": "top"
+  },
+  {
+    "type": "ToggleControl",
+    "name": "nightmode",
+    "value": false
+  },
+  {
+    "type": "ToggleControl",
+    "name": "partymode",
+    "value": false
+  },
+  {
+    "type": "ToggleControl",
+    "name": "supercool",
+    "value": false,
+    "zoneId": 0,
+    "zonePosition": "top"
+  },
+  {
+    "type": "TemperatureControl",
+    "max": 9,
+    "min": 3,
+    "name": "temperature",
+    "setTemperatureSteps": [],
+    "setTemperatureStepsEnabled": false,
+    "target": 3,
+    "unit": "°C",
+    "value": 3,
+    "zoneId": 0,
+    "zonePosition": "top"
+  }
+]

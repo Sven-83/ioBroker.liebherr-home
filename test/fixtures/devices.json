@@ -1,0 +1,16 @@
+[
+  {
+    "deviceId": "DEVICE-1",
+    "deviceName": "IRBbi 4170-150 2",
+    "deviceType": "FRIDGE",
+    "imageUrl": "https://assets-cdn.liebherr.com/versions/cbfbc252-0169-46f7-9409-f93d3bc7c3c3/web-png/",
+    "nickname": "Device 1"
+  },
+  {
+    "deviceId": "DEVICE-2",
+    "deviceName": "GNP 3755-107 2",
+    "deviceType": "FREEZER",
+    "imageUrl": "https://assets-cdn.liebherr.com/versions/dfff01de-3ba2-45cd-9db6-7e7f95cd62c7/web-png/",
+    "nickname": "Device 2"
+  }
+]

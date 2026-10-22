@@ -1,0 +1,80 @@
+{
+  "path": "/v1/sse/devices/DEVICE-2/controls",
+  "seconds": 90,
+  "status": 200,
+  "headers": {
+    "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+    "connection": "keep-alive",
+    "content-type": "text/event-stream;charset=UTF-8",
+    "date": "Tue, 20 Oct 2026 21:00:04 GMT",
+    "expires": "0",
+    "pragma": "no-cache",
+    "referrer-policy": "no-referrer",
+    "strict-transport-security": "max-age=31536000; includeSubDomains",
+    "transfer-encoding": "chunked",
+    "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY",
+    "x-xss-protection": "0"
+  },
+  "lines": [
+    {
+      "t": 454,
+      "line": "event:device-update"
+    },
+    {
+      "t": 454,
+      "line": "data:[{\"type\":\"ToggleControl\",\"name\":\"superfrost\",\"value\":false,\"zoneId\":0,\"zonePosition\":\"top\"},{\"type\":\"TemperatureControl\",\"max\":-14,\"min\":-28,\"name\":\"temperature\",\"setTemperatureSteps\":[],\"setTemp…"
+    },
+    {
+      "t": 454,
+      "line": ""
+    },
+    {
+      "t": 30462,
+      "line": ":keep-alive"
+    },
+    {
+      "t": 30462,
+      "line": ""
+    },
+    {
+      "t": 60456,
+      "line": ":keep-alive"
+    },
+    {
+      "t": 60456,
+      "line": ""
+    }
+  ],
+  "events": [
+    {
+      "t": 454,
+      "event": "device-update",
+      "data": [
+        {
+          "type": "ToggleControl",
+          "name": "superfrost",
+          "value": false,
+          "zoneId": 0,
+          "zonePosition": "top"
+        },
+        {
+          "type": "TemperatureControl",
+          "max": -14,
+          "min": -28,
+          "name": "temperature",
+          "setTemperatureSteps": [],
+          "setTemperatureStepsEnabled": false,
+          "target": -18,
+          "unit": "°C",
+          "value": -18,
+          "zoneId": 0,
+          "zonePosition": "top"
+        }
+      ]
+    }
+  ],
+  "end": "timeout (planmäßig)",
+  "durationMs": 90011
+}

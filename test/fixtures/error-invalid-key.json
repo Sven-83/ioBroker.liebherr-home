@@ -1,0 +1,10 @@
+{
+  "status": 401,
+  "headers": {
+    "connection": "keep-alive",
+    "content-length": "57",
+    "date": "Tue, 20 Oct 2026 21:00:03 GMT",
+    "strict-transport-security": "max-age=31536000; includeSubDomains"
+  },
+  "body": "<html><body><h1>Invalid API Key Version<h1></body></html>"
+}

@@ -1,0 +1,217 @@
+{
+  "probedAt": "2026-10-20T21:00:03.603Z",
+  "sseSeconds": 90,
+  "requests": [
+    {
+      "path": "/v1/devices",
+      "status": 200,
+      "ms": 475,
+      "headers": {
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "connection": "keep-alive",
+        "content-length": "418",
+        "content-type": "application/json",
+        "date": "Tue, 20 Oct 2026 21:00:01 GMT",
+        "expires": "0",
+        "pragma": "no-cache",
+        "referrer-policy": "no-referrer",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-xss-protection": "0"
+      }
+    },
+    {
+      "path": "/v1/devices/DEVICE-1",
+      "status": 200,
+      "ms": 284,
+      "headers": {
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "connection": "keep-alive",
+        "content-length": "207",
+        "content-type": "application/json",
+        "date": "Tue, 20 Oct 2026 21:00:01 GMT",
+        "expires": "0",
+        "pragma": "no-cache",
+        "referrer-policy": "no-referrer",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-xss-protection": "0"
+      }
+    },
+    {
+      "path": "/v1/devices/DEVICE-1/controls",
+      "status": 200,
+      "ms": 164,
+      "headers": {
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "connection": "keep-alive",
+        "content-length": "504",
+        "content-type": "application/json",
+        "date": "Tue, 20 Oct 2026 21:00:02 GMT",
+        "expires": "0",
+        "pragma": "no-cache",
+        "referrer-policy": "no-referrer",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-xss-protection": "0"
+      }
+    },
+    {
+      "path": "/v1/devices/DEVICE-1/controls/temperature",
+      "status": 200,
+      "ms": 161,
+      "headers": {
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "connection": "keep-alive",
+        "content-length": "194",
+        "content-type": "application/json",
+        "date": "Tue, 20 Oct 2026 21:00:02 GMT",
+        "expires": "0",
+        "pragma": "no-cache",
+        "referrer-policy": "no-referrer",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-xss-protection": "0"
+      }
+    },
+    {
+      "path": "/v1/devices/DEVICE-1/controls/temperature?zoneId=0",
+      "status": 200,
+      "ms": 245,
+      "headers": {
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "connection": "keep-alive",
+        "content-length": "194",
+        "content-type": "application/json",
+        "date": "Tue, 20 Oct 2026 21:00:02 GMT",
+        "expires": "0",
+        "pragma": "no-cache",
+        "referrer-policy": "no-referrer",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-xss-protection": "0"
+      }
+    },
+    {
+      "path": "/v1/devices/DEVICE-2",
+      "status": 200,
+      "ms": 139,
+      "headers": {
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "connection": "keep-alive",
+        "content-length": "208",
+        "content-type": "application/json",
+        "date": "Tue, 20 Oct 2026 21:00:02 GMT",
+        "expires": "0",
+        "pragma": "no-cache",
+        "referrer-policy": "no-referrer",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-xss-protection": "0"
+      }
+    },
+    {
+      "path": "/v1/devices/DEVICE-2/controls",
+      "status": 200,
+      "ms": 261,
+      "headers": {
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "connection": "keep-alive",
+        "content-length": "293",
+        "content-type": "application/json",
+        "date": "Tue, 20 Oct 2026 21:00:02 GMT",
+        "expires": "0",
+        "pragma": "no-cache",
+        "referrer-policy": "no-referrer",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-xss-protection": "0"
+      }
+    },
+    {
+      "path": "/v1/devices/DEVICE-2/controls/temperature",
+      "status": 200,
+      "ms": 293,
+      "headers": {
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "connection": "keep-alive",
+        "content-length": "202",
+        "content-type": "application/json",
+        "date": "Tue, 20 Oct 2026 21:00:03 GMT",
+        "expires": "0",
+        "pragma": "no-cache",
+        "referrer-policy": "no-referrer",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-xss-protection": "0"
+      }
+    },
+    {
+      "path": "/v1/devices/DEVICE-2/controls/temperature?zoneId=0",
+      "status": 200,
+      "ms": 226,
+      "headers": {
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "connection": "keep-alive",
+        "content-length": "202",
+        "content-type": "application/json",
+        "date": "Tue, 20 Oct 2026 21:00:03 GMT",
+        "expires": "0",
+        "pragma": "no-cache",
+        "referrer-policy": "no-referrer",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-xss-protection": "0"
+      }
+    },
+    {
+      "path": "/v1/devices (ungültiger Key)",
+      "status": 401,
+      "ms": 43,
+      "headers": {
+        "connection": "keep-alive",
+        "content-length": "57",
+        "date": "Tue, 20 Oct 2026 21:00:03 GMT",
+        "strict-transport-security": "max-age=31536000; includeSubDomains"
+      }
+    },
+    {
+      "path": "/v1/devices/<unbekannt>/controls",
+      "status": 400,
+      "ms": 254,
+      "headers": {
+        "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+        "connection": "keep-alive",
+        "content-length": "151",
+        "content-type": "application/json",
+        "date": "Tue, 20 Oct 2026 21:00:03 GMT",
+        "expires": "0",
+        "pragma": "no-cache",
+        "referrer-policy": "no-referrer",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-xss-protection": "0"
+      }
+    }
+  ]
+}

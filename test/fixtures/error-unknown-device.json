@@ -1,0 +1,23 @@
+{
+  "status": 400,
+  "headers": {
+    "cache-control": "no-cache, no-store, max-age=0, must-revalidate",
+    "connection": "keep-alive",
+    "content-length": "151",
+    "content-type": "application/json",
+    "date": "Tue, 20 Oct 2026 21:00:03 GMT",
+    "expires": "0",
+    "pragma": "no-cache",
+    "referrer-policy": "no-referrer",
+    "strict-transport-security": "max-age=31536000; includeSubDomains",
+    "vary": "Origin, Access-Control-Request-Method, Access-Control-Request-Headers",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY",
+    "x-xss-protection": "0"
+  },
+  "body": {
+    "error": "getDeviceControls.deviceId: Invalid DeviceId format. Format has to be in 00.000.000.0",
+    "message": "Invalid format",
+    "status": "400 BAD_REQUEST"
+  }
+}
