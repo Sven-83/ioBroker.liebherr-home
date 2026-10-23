@@ -185,5 +185,8 @@ Befehle an echte Geräte beim Test nur nach Svens OK.
 
 ## 8. Offene Punkte
 
+- **Bottle-Timer (Gefrierschrank) und Holiday-Mode (Kühlschrank)** gibt es in der App, aber nicht in der HomeAPI
+  (Details: `docs/api-abgleich.md` → „Fehlt in der HomeAPI“). Sobald Liebherr sie liefert, als Schalter bzw. eigene Anzeige ergänzen.
+
 - Mehrere Zonen (Kombigeräte): Benennung und Reihenfolge der Bereiche erst mit Fixture prüfbar.
 - `info.realtime` gilt für die ganze Instanz, nicht pro Gerät; reicht für den Statuspunkt, solange alle Streams gemeinsam laufen.

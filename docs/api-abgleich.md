@@ -89,3 +89,19 @@ Geräte: `FRIDGE` IRBbi 4170-150 2, `FREEZER` GNP 3755-107 2.
 - Kein Online-Status am Device; Erreichbarkeit nur indirekt über `404 Device is not reachable`.
 - Sicherheit: `deviceId` ist die Seriennummer → in Logs maskieren, Objekt-IDs per HMAC mit Instanz-Salt maskieren (entschieden, siehe CLAUDE.md „Objektstruktur“).
 - `autodoor` bewegt physisch eine Tür → Write nur mit bewusster Freischaltung (Config-Option, Default aus)?
+
+## Fehlt in der HomeAPI (App kann es, Stand 2026-10-23)
+
+In der SmartDevice-App vorhanden, aber weder in der Spec (frisch geladen 2026-10-23, inhaltlich unverändert) noch in den
+Antworten der eigenen Geräte, auch nicht als unbekannter Control unter `raw.*`:
+
+| Funktion | Gerät | Stand |
+|---|---|---|
+| **Bottle-Timer** | Gefrierschrank GNP 3755 | nicht in der HomeAPI |
+| **Holiday-Mode** (Urlaubsmodus) | Kühlschrank IRBbi 4170 | nicht in der HomeAPI |
+
+- Die App nutzt eine interne Schnittstelle; die nachzubauen widerspricht der Clean-Room-Regel (nur offizielle Spec + eigene Tests).
+- Wunsch an Liebherr über das Beta-Programm der App gemeldet bzw. zu melden (Sven).
+- Kommt es später als `ToggleControl` (z. B. `holidaymode`): erscheint automatisch read-only; nach Test am Gerät in
+  `WRITABLE_TOGGLES` (`src/lib/model/mapper.ts`) aufnehmen, das Widget zeigt es dann als Schalter.
+- Kommt es als neuer Control-Typ: landet als `raw.<name>` (JSON) und wird einmal geloggt → Mapper + Widget gezielt ergänzen.
