@@ -1,0 +1,8 @@
+{
+    "set_label": "Liebherr",
+    "widget_label": "Liebherr-Gerät",
+    "group_common": "Gerät",
+    "device": "Gerät (Geräteordner)",
+    "title": "Name (leer = aus der App)",
+    "no_device": "Geräteordner wählen, z. B. liebherr-home.0.fridge_…"
+}

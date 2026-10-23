@@ -51,6 +51,7 @@
     "admin{,/!(src)/**}/*.{html,css,png,svg,jpg,js}",
     "build/",
     "www/",
+    "widgets/",
     "io-package.json",
     "LICENSE"
   ],
@@ -69,7 +70,8 @@
     "lint": "eslint -c eslint.config.mjs .",
     "translate": "translate-adapter",
     "release": "release-script",
-    "dev-server": "dev-server"
+    "dev-server": "dev-server",
+    "build:widgets": "node tools/build-widgets.mjs"
   },
   "bugs": {
     "url": "https://github.com/Sven-83/ioBroker.liebherr-home/issues"

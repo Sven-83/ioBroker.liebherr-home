@@ -1,0 +1,27 @@
+{
+    "name": "iobroker.liebherr-home-widgets",
+    "private": true,
+    "version": "0.1.0",
+    "description": "VIS-2 widget set of ioBroker.liebherr-home (built into ../widgets/liebherr-home)",
+    "license": "MIT",
+    "type": "module",
+    "scripts": {
+        "start": "vite --port 4173 --strictPort",
+        "build": "tsc && vite build",
+        "check": "tsc"
+    },
+    "devDependencies": {
+        "@iobroker/gui-components": "~10.3.11",
+        "@iobroker/types": "~7.2.5",
+        "@iobroker/types-vis-2": "~2.20.1",
+        "@module-federation/vite": "~1.23.5",
+        "@mui/material": "~9.5.0",
+        "@types/react": "~19.3.0",
+        "@types/react-dom": "~19.3.0",
+        "@vitejs/plugin-react": "~6.1.2",
+        "react": "~19.3.1",
+        "react-dom": "~19.3.1",
+        "typescript": "~7.0.2",
+        "vite": "8.3.4"
+    }
+}

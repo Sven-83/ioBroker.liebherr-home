@@ -19,3 +19,6 @@ admin/i18n/*/flat.txt
 # logs and local secrets
 *.log
 .env
+
+# widget build intermediate (result goes to widgets/)
+src-widgets/build/

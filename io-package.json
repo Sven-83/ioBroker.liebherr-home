@@ -82,7 +82,21 @@
             {
                 "admin": ">=7.6.20"
             }
-        ]
+        ],
+        "restartAdapters": [
+            "vis-2"
+        ],
+        "visWidgets": {
+            "vis2LiebherrHome": {
+                "i18n": "component",
+                "name": "vis2LiebherrHome",
+                "url": "liebherr-home/customWidgets.js",
+                "bundlerType": "module",
+                "components": [
+                    "LiebherrDevice"
+                ]
+            }
+        }
     },
     "native": {
         "apiKey": "",
