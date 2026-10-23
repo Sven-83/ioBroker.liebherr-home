@@ -12,6 +12,7 @@ Liest und steuert Liebherr-Kühl- und -Gefriergeräte über die offizielle, clou
 - Es wird nur angelegt, was ein Gerät meldet; unbekannte Funktionen landen als JSON unter `raw`, damit neue
   Funktionen ohne Adapter-Update sichtbar werden
 - Seriennummern erscheinen nie in Objekt-IDs, States oder im Log
+- VIS-2-Widget: eine Kachel je Gerät mit Pop-up zur Steuerung (siehe unten)
 
 ## Voraussetzungen
 - Liebherr-Geräte, die in der **SmartDevice-App** eingebunden sind (die HomeAPI sieht nur Geräte, die dort online sind)
@@ -92,6 +93,24 @@ gesendet; der State springt auf den echten Wert zurück, und das Log nennt den G
 angenommen, liest der Adapter den Wert nach und bestätigt ihn mit `ack: true`. Schlägt ein Befehl fehl, wird der
 zuletzt bestätigte Wert wiederhergestellt.
 
+## VIS-2-Widget
+Der Adapter bringt ein eigenes VIS-2-Widget-Set **Liebherr** mit. Es wird mit dem Adapter installiert; VIS-2 startet
+dafür einmal neu.
+
+1. Im VIS-2-Editor **Liebherr-Gerät** aus der Palette auf eine View ziehen.
+2. Rechts den Haken bei der Gruppe **Gerät** setzen und unter **Gerät (Geräteordner)** den Ordner wählen, z. B.
+    `liebherr-home.0.fridge_3f9a1c2e` (ein beliebiger State in diesem Ordner geht auch).
+3. Optional einen **Namen** eintragen; leer = Name aus der SmartDevice-App.
+
+Die **Kachel** zeigt Ist- und Solltemperatur, Chips für aktive Funktionen und einen Statuspunkt
+(grün = Echtzeit, amber = Befehl offen oder nur Polling, rot = Gerät nicht erreichbar).
+Ein Klick öffnet das **Pop-up**: Solltemperatur mit −/+ in den Grenzen des Geräts, HydroBreeze-, IceMaker- und
+BioFresh-Modi als Tasten, Schalter für SuperCool, SuperFrost, Party- und Nachtmodus sowie eine Statuszeile.
+Nur Tasten, keine Regler. Jeder Tastendruck wird sofort gesendet; das Pop-up wartet auf die Bestätigung des Adapters
+und zeigt „nicht bestätigt“ und den alten Wert, wenn nach 15 s keine kommt. Unter 500 px Breite füllt das Pop-up den
+Bildschirm. Das Widget zeigt nur, was das Gerät meldet und was beschreibbar ist. Die Schrift (Barlow, SIL OFL) ist
+mitgeliefert, es wird nichts aus dem Internet geladen.
+
 ## Sicherheit
 - Der API-Key wird verschlüsselt gespeichert und nie in Logs, URLs oder States geschrieben.
 - Seriennummern werden in allen Log-Meldungen maskiert und nie in Objekten oder States gespeichert.
@@ -103,6 +122,7 @@ zuletzt bestätigte Wert wiederhergestellt.
 - Temperaturen nur in ganzen Grad (die API kennt keine Nachkommastellen).
 - Es gibt keinen Online-Status; ein Gerät gilt als nicht erreichbar, wenn die Cloud „Gerät nicht erreichbar“ meldet.
 - Rate-Limits der HomeAPI sind nicht dokumentiert; der Adapter beachtet HTTP 429 und `Retry-After`, falls sie auftreten.
+- Bottle-Timer und Urlaubsmodus gibt es in der SmartDevice-App, aber nicht in der HomeAPI; der Adapter kann sie daher nicht anbieten.
 - Getestet mit einem Kühlschrank (IRBbi 4170) und einem Gefrierschrank (GNP 3755). IceMaker, BioFresh-Plus,
   Präsentationslicht, automatische Tür und °F-Geräte sind nach der API-Spezifikation umgesetzt, aber nicht an echten
   Geräten getestet.

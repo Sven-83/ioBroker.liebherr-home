@@ -1,8 +1,21 @@
 {
     "common": {
         "name": "liebherr-home",
-        "version": "0.1.0",
+        "version": "0.2.0",
         "news": {
+            "0.2.0": {
+                "en": "VIS-2 widget set \"Liebherr\": tile with live values and a dialog to control the appliance\nown adapter icon",
+                "de": "VIS-2-Widget-Set „Liebherr“: Kachel mit Live-Werten und Pop-up zur Steuerung des Geräts\neigenes Adapter-Icon",
+                "ru": "Набор виджетов VIS-2 «Liebherr»: плитка с текущими значениями и диалог для управления прибором\nсобственный значок адаптера",
+                "pt": "Conjunto de widgets VIS-2 \"Liebherr\": mosaico com valores em tempo real e diálogo para controlar o aparelho\nícone próprio do adaptador",
+                "nl": "VIS-2-widgetset \"Liebherr\": tegel met actuele waarden en een dialoog om het apparaat te bedienen\neigen adapterpictogram",
+                "fr": "Jeu de widgets VIS-2 « Liebherr » : tuile avec valeurs en direct et dialogue pour piloter l'appareil\nicône propre de l'adaptateur",
+                "it": "Set di widget VIS-2 \"Liebherr\": riquadro con valori in tempo reale e finestra per controllare l'apparecchio\nicona propria dell'adattatore",
+                "es": "Conjunto de widgets VIS-2 \"Liebherr\": mosaico con valores en vivo y diálogo para controlar el aparato\nicono propio del adaptador",
+                "pl": "Zestaw widżetów VIS-2 „Liebherr”: kafelek z bieżącymi wartościami i okno do sterowania urządzeniem\nwłasna ikona adaptera",
+                "uk": "Набір віджетів VIS-2 «Liebherr»: плитка з поточними значеннями та діалог для керування приладом\nвласна піктограма адаптера",
+                "zh-cn": "VIS-2 小部件集“Liebherr”：显示实时数值的磁贴和控制电器的对话框\n自有适配器图标"
+            },
             "0.1.0": {
                 "en": "First working version: read-only and writable controls, real-time updates via SSE, masked serial numbers",
                 "de": "Erste funktionsfähige Version: lesbare und schreibbare Controls, Echtzeit-Updates per SSE, maskierte Seriennummern",

@@ -1,10 +1,9 @@
 {
     "name": "iobroker.liebherr-home-widgets",
     "private": true,
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "VIS-2 widget set of ioBroker.liebherr-home (built into ../widgets/liebherr-home)",
     "license": "MIT",
-    "type": "module",
     "scripts": {
         "start": "vite --port 4173 --strictPort",
         "build": "tsc && vite build",
