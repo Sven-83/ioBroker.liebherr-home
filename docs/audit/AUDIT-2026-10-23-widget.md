@@ -11,7 +11,7 @@ Geprüft: `src-widgets/` (Quellen), `widgets/liebherr-home/` (Build), `tools/bui
 |---|---|
 | 🔴 Kritisch | 0 |
 | 🟠 Hoch | 0 |
-| 🟡 Mittel | 1 |
+| 🟡 Mittel | 1 (✅ erledigt) |
 | 🔵 Niedrig | 3 |
 
 Das Widget hat keine eigene Netzwerkverbindung, lädt nichts aus dem Internet und rendert alle Werte als Text (React).
@@ -30,11 +30,11 @@ Es schreibt nur über `context.setValue` in beschreibbare States des gewählten 
 
 ## 🟡 MITTEL
 
-### WM1 – Steuerung über das Widget noch nicht an echten Geräten getestet
+### WM1 – Steuerung über das Widget noch nicht an echten Geräten getestet – ✅ erledigt
 Befehlslogik (offen → Bestätigung, 15-s-Timeout, vom Adapter wiederhergestellter Wert, Esc) ist gegen ein simuliertes
 Gerät ohne Adapter (`liebherr-home.1.fridge_test` im dev-server) geprüft; dabei wurden Schreibzugriffe auf
 `liebherr-home.0` per WebSocket-Proxy blockiert. Der Adapter-Teil (Debounce, Readback) ist seit Phase 5 live bestätigt.
-**Offen:** Live-Test Soll 3 → 4 → 3 °C, HydroBreeze, ein Schalter – nur mit Svens OK.
+**Erledigt 2026-10-23:** Live-Test an den echten Geräten durch Sven über das Widget – in Ordnung.
 
 ## 🔵 NIEDRIG
 
