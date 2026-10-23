@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Kachel -->
+  <rect x="8" y="8" width="496" height="496" rx="96" fill="#16241c" stroke="#2f4a39" stroke-width="10"/>
+  <!-- Füße -->
+  <rect x="182" y="430" width="34" height="26" rx="8" fill="#a3b0a5"/>
+  <rect x="296" y="430" width="34" height="26" rx="8" fill="#a3b0a5"/>
+  <!-- Korpus -->
+  <rect x="150" y="62" width="212" height="378" rx="34" fill="#213529" stroke="#ece7da" stroke-width="16"/>
+  <!-- Türteilung -->
+  <line x1="158" y1="186" x2="354" y2="186" stroke="#ece7da" stroke-width="14"/>
+  <!-- Griffe (Amber) -->
+  <rect x="306" y="98" width="20" height="58" rx="10" fill="#e0a43a"/>
+  <rect x="306" y="216" width="20" height="104" rx="10" fill="#e0a43a"/>
+  <!-- Schneeflocke -->
+  <g transform="translate(232 316) scale(0.9)" stroke="#8cc3d4" stroke-width="12" stroke-linecap="round" fill="none">
+    <g id="arm">
+      <line x1="0" y1="0" x2="0" y2="-54"/>
+      <polyline points="-16,-40 0,-26 16,-40"/>
+    </g>
+    <use href="#arm" transform="rotate(60)"/>
+    <use href="#arm" transform="rotate(120)"/>
+    <use href="#arm" transform="rotate(180)"/>
+    <use href="#arm" transform="rotate(240)"/>
+    <use href="#arm" transform="rotate(300)"/>
+  </g>
+</svg>
