@@ -1,0 +1,8 @@
+{
+    "set_label": "Liebherr",
+    "widget_label": "Прилад Liebherr",
+    "group_common": "Прилад",
+    "device": "Прилад (папка пристрою)",
+    "title": "Назва (порожньо = з додатку)",
+    "no_device": "Виберіть папку пристрою, напр. liebherr-home.0.fridge_…"
+}

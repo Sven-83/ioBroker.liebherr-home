@@ -1,0 +1,8 @@
+{
+    "set_label": "Liebherr",
+    "widget_label": "Liebherr 电器",
+    "group_common": "电器",
+    "device": "电器（设备文件夹）",
+    "title": "名称（留空 = 来自应用）",
+    "no_device": "请选择设备文件夹，例如 liebherr-home.0.fridge_…"
+}

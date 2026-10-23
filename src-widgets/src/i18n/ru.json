@@ -1,0 +1,8 @@
+{
+    "set_label": "Liebherr",
+    "widget_label": "Прибор Liebherr",
+    "group_common": "Прибор",
+    "device": "Прибор (папка устройства)",
+    "title": "Имя (пусто = из приложения)",
+    "no_device": "Выберите папку устройства, напр. liebherr-home.0.fridge_…"
+}

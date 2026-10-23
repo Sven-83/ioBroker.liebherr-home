@@ -1,0 +1,8 @@
+{
+    "set_label": "Liebherr",
+    "widget_label": "Liebherr-apparaat",
+    "group_common": "Apparaat",
+    "device": "Apparaat (apparaatmap)",
+    "title": "Naam (leeg = uit de app)",
+    "no_device": "Kies de apparaatmap, bijv. liebherr-home.0.fridge_…"
+}

@@ -1,0 +1,8 @@
+{
+    "set_label": "Liebherr",
+    "widget_label": "Aparelho Liebherr",
+    "group_common": "Aparelho",
+    "device": "Aparelho (pasta do dispositivo)",
+    "title": "Nome (vazio = da aplicação)",
+    "no_device": "Selecione a pasta do dispositivo, p. ex. liebherr-home.0.fridge_…"
+}
