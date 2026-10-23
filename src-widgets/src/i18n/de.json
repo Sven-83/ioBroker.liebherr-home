@@ -4,5 +4,19 @@
     "group_common": "Gerät",
     "device": "Gerät (Geräteordner)",
     "title": "Name (leer = aus der App)",
-    "no_device": "Geräteordner wählen, z. B. liebherr-home.0.fridge_…"
+    "no_device": "Geräteordner wählen, z. B. liebherr-home.0.fridge_…",
+    "not_found": "In diesem Ordner ist kein liebherr-home-Gerät",
+    "loading": "Lade …",
+    "dot_ok": "Echtzeit",
+    "dot_pending": "Befehl offen",
+    "dot_polling": "Nur Polling",
+    "dot_unreachable": "Nicht erreichbar",
+    "setpoint_short": "Soll",
+    "mode_LOW": "Niedrig",
+    "mode_MEDIUM": "Mittel",
+    "mode_HIGH": "Hoch",
+    "chip_partymode": "Party",
+    "chip_nightmode": "Nachtmodus",
+    "chip_supercool": "SuperCool",
+    "chip_superfrost": "SuperFrost"
 }

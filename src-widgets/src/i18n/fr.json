@@ -4,5 +4,19 @@
     "group_common": "Appareil",
     "device": "Appareil (dossier de l'appareil)",
     "title": "Nom (vide = depuis l'application)",
-    "no_device": "Choisissez le dossier de l'appareil, p. ex. liebherr-home.0.fridge_…"
+    "no_device": "Choisissez le dossier de l'appareil, p. ex. liebherr-home.0.fridge_…",
+    "not_found": "Aucun appareil liebherr-home dans ce dossier",
+    "loading": "Chargement…",
+    "dot_ok": "Temps réel",
+    "dot_pending": "Commande en attente",
+    "dot_polling": "Interrogation seule",
+    "dot_unreachable": "Injoignable",
+    "setpoint_short": "Consigne",
+    "mode_LOW": "Bas",
+    "mode_MEDIUM": "Moyen",
+    "mode_HIGH": "Élevé",
+    "chip_partymode": "Fête",
+    "chip_nightmode": "Mode nuit",
+    "chip_supercool": "SuperCool",
+    "chip_superfrost": "SuperFrost"
 }

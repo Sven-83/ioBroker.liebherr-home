@@ -4,5 +4,19 @@
     "group_common": "Прилад",
     "device": "Прилад (папка пристрою)",
     "title": "Назва (порожньо = з додатку)",
-    "no_device": "Виберіть папку пристрою, напр. liebherr-home.0.fridge_…"
+    "no_device": "Виберіть папку пристрою, напр. liebherr-home.0.fridge_…",
+    "not_found": "У цій папці немає пристрою liebherr-home",
+    "loading": "Завантаження…",
+    "dot_ok": "У реальному часі",
+    "dot_pending": "Команда очікує",
+    "dot_polling": "Лише опитування",
+    "dot_unreachable": "Недоступно",
+    "setpoint_short": "Ціль",
+    "mode_LOW": "Низький",
+    "mode_MEDIUM": "Середній",
+    "mode_HIGH": "Високий",
+    "chip_partymode": "Вечірка",
+    "chip_nightmode": "Нічний режим",
+    "chip_supercool": "SuperCool",
+    "chip_superfrost": "SuperFrost"
 }

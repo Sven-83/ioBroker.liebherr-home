@@ -4,5 +4,19 @@
     "group_common": "电器",
     "device": "电器（设备文件夹）",
     "title": "名称（留空 = 来自应用）",
-    "no_device": "请选择设备文件夹，例如 liebherr-home.0.fridge_…"
+    "no_device": "请选择设备文件夹，例如 liebherr-home.0.fridge_…",
+    "not_found": "此文件夹中没有 liebherr-home 设备",
+    "loading": "加载中…",
+    "dot_ok": "实时",
+    "dot_pending": "命令等待中",
+    "dot_polling": "仅轮询",
+    "dot_unreachable": "无法连接",
+    "setpoint_short": "目标",
+    "mode_LOW": "低",
+    "mode_MEDIUM": "中",
+    "mode_HIGH": "高",
+    "chip_partymode": "派对",
+    "chip_nightmode": "夜间模式",
+    "chip_supercool": "SuperCool",
+    "chip_superfrost": "SuperFrost"
 }

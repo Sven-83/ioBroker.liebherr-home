@@ -4,5 +4,19 @@
     "group_common": "Apparaat",
     "device": "Apparaat (apparaatmap)",
     "title": "Naam (leeg = uit de app)",
-    "no_device": "Kies de apparaatmap, bijv. liebherr-home.0.fridge_…"
+    "no_device": "Kies de apparaatmap, bijv. liebherr-home.0.fridge_…",
+    "not_found": "Geen liebherr-home-apparaat in deze map",
+    "loading": "Laden…",
+    "dot_ok": "Realtime",
+    "dot_pending": "Opdracht in behandeling",
+    "dot_polling": "Alleen polling",
+    "dot_unreachable": "Niet bereikbaar",
+    "setpoint_short": "Doel",
+    "mode_LOW": "Laag",
+    "mode_MEDIUM": "Middel",
+    "mode_HIGH": "Hoog",
+    "chip_partymode": "Party",
+    "chip_nightmode": "Nachtmodus",
+    "chip_supercool": "SuperCool",
+    "chip_superfrost": "SuperFrost"
 }

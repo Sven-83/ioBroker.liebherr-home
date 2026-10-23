@@ -4,5 +4,19 @@
     "group_common": "Urządzenie",
     "device": "Urządzenie (folder urządzenia)",
     "title": "Nazwa (puste = z aplikacji)",
-    "no_device": "Wybierz folder urządzenia, np. liebherr-home.0.fridge_…"
+    "no_device": "Wybierz folder urządzenia, np. liebherr-home.0.fridge_…",
+    "not_found": "W tym folderze nie ma urządzenia liebherr-home",
+    "loading": "Ładowanie…",
+    "dot_ok": "Czas rzeczywisty",
+    "dot_pending": "Polecenie oczekuje",
+    "dot_polling": "Tylko odpytywanie",
+    "dot_unreachable": "Niedostępne",
+    "setpoint_short": "Cel",
+    "mode_LOW": "Niski",
+    "mode_MEDIUM": "Średni",
+    "mode_HIGH": "Wysoki",
+    "chip_partymode": "Impreza",
+    "chip_nightmode": "Tryb nocny",
+    "chip_supercool": "SuperCool",
+    "chip_superfrost": "SuperFrost"
 }

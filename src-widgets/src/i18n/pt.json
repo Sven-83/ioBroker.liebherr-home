@@ -4,5 +4,19 @@
     "group_common": "Aparelho",
     "device": "Aparelho (pasta do dispositivo)",
     "title": "Nome (vazio = da aplicação)",
-    "no_device": "Selecione a pasta do dispositivo, p. ex. liebherr-home.0.fridge_…"
+    "no_device": "Selecione a pasta do dispositivo, p. ex. liebherr-home.0.fridge_…",
+    "not_found": "Nenhum aparelho liebherr-home nesta pasta",
+    "loading": "A carregar…",
+    "dot_ok": "Tempo real",
+    "dot_pending": "Comando pendente",
+    "dot_polling": "Apenas consulta",
+    "dot_unreachable": "Inacessível",
+    "setpoint_short": "Alvo",
+    "mode_LOW": "Baixo",
+    "mode_MEDIUM": "Médio",
+    "mode_HIGH": "Alto",
+    "chip_partymode": "Festa",
+    "chip_nightmode": "Modo noturno",
+    "chip_supercool": "SuperCool",
+    "chip_superfrost": "SuperFrost"
 }

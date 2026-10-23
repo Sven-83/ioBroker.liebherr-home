@@ -4,5 +4,19 @@
     "group_common": "Прибор",
     "device": "Прибор (папка устройства)",
     "title": "Имя (пусто = из приложения)",
-    "no_device": "Выберите папку устройства, напр. liebherr-home.0.fridge_…"
+    "no_device": "Выберите папку устройства, напр. liebherr-home.0.fridge_…",
+    "not_found": "В этой папке нет устройства liebherr-home",
+    "loading": "Загрузка…",
+    "dot_ok": "В реальном времени",
+    "dot_pending": "Команда ожидает",
+    "dot_polling": "Только опрос",
+    "dot_unreachable": "Недоступно",
+    "setpoint_short": "Цель",
+    "mode_LOW": "Низкий",
+    "mode_MEDIUM": "Средний",
+    "mode_HIGH": "Высокий",
+    "chip_partymode": "Вечеринка",
+    "chip_nightmode": "Ночной режим",
+    "chip_supercool": "SuperCool",
+    "chip_superfrost": "SuperFrost"
 }

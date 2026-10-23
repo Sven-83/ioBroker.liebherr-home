@@ -4,5 +4,19 @@
     "group_common": "Appliance",
     "device": "Appliance (device folder)",
     "title": "Name (empty = from the app)",
-    "no_device": "Select the device folder, e.g. liebherr-home.0.fridge_…"
+    "no_device": "Select the device folder, e.g. liebherr-home.0.fridge_…",
+    "not_found": "No liebherr-home device found in this folder",
+    "loading": "Loading…",
+    "dot_ok": "Real time",
+    "dot_pending": "Command pending",
+    "dot_polling": "Polling only",
+    "dot_unreachable": "Not reachable",
+    "setpoint_short": "Set",
+    "mode_LOW": "Low",
+    "mode_MEDIUM": "Medium",
+    "mode_HIGH": "High",
+    "chip_partymode": "Party",
+    "chip_nightmode": "Night mode",
+    "chip_supercool": "SuperCool",
+    "chip_superfrost": "SuperFrost"
 }
