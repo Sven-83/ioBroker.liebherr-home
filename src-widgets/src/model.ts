@@ -312,3 +312,25 @@ export function formatDegrees(value: unknown, lang: string): string {
     const minus = lang === 'de' ? '−' : '-';
     return `${n < 0 ? minus : ''}${Math.abs(n)}°`;
 }
+
+/**
+ * Next setpoint for − / +: one step, clamped to min/max. Returns the same value at the limit.
+ *
+ * @param current - Shown setpoint
+ * @param direction - -1 or +1
+ * @param setpoint - Limits and step of the state
+ */
+export function stepValue(current: number, direction: -1 | 1, setpoint: SetpointControl): number {
+    let next = current + direction * setpoint.step;
+    if (setpoint.min !== undefined && next < setpoint.min) {
+        next = setpoint.min;
+    }
+    if (setpoint.max !== undefined && next > setpoint.max) {
+        next = setpoint.max;
+    }
+    // a value outside the limits (e.g. reported by the cloud) only moves towards the range
+    if ((direction > 0 && next < current) || (direction < 0 && next > current)) {
+        return current;
+    }
+    return next;
+}
