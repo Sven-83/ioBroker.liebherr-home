@@ -1,8 +1,21 @@
 {
     "common": {
         "name": "liebherr-home",
-        "version": "0.2.0",
+        "version": "0.2.1",
         "news": {
+            "0.2.1": {
+                "en": "shorter widget file names (long names could break installations on Windows)\nfaster creation of the objects\nmore tests",
+                "de": "kürzere Dateinamen im Widget (lange Namen konnten Installationen unter Windows stören)\nObjekte werden schneller angelegt\nmehr Tests",
+                "ru": "более короткие имена файлов виджета (длинные имена могли мешать установке в Windows)\nобъекты создаются быстрее\nбольше тестов",
+                "pt": "nomes de ficheiros do widget mais curtos (nomes longos podiam falhar instalações no Windows)\ncriação mais rápida dos objetos\nmais testes",
+                "nl": "kortere bestandsnamen in de widget (lange namen konden installaties op Windows verstoren)\nobjecten worden sneller aangemaakt\nmeer tests",
+                "fr": "noms de fichiers du widget plus courts (les noms longs pouvaient bloquer l'installation sous Windows)\ncréation plus rapide des objets\nplus de tests",
+                "it": "nomi dei file del widget più brevi (i nomi lunghi potevano bloccare l'installazione su Windows)\ncreazione più rapida degli oggetti\npiù test",
+                "es": "nombres de archivo del widget más cortos (los nombres largos podían fallar en instalaciones de Windows)\ncreación más rápida de los objetos\nmás pruebas",
+                "pl": "krótsze nazwy plików widżetu (długie nazwy mogły psuć instalację w Windows)\nszybsze tworzenie obiektów\nwięcej testów",
+                "uk": "коротші імена файлів віджета (довгі імена могли заважати встановленню у Windows)\nоб’єкти створюються швидше\nбільше тестів",
+                "zh-cn": "缩短小部件文件名（过长的文件名可能导致 Windows 上安装失败）\n更快地创建对象\n更多测试"
+            },
             "0.2.0": {
                 "en": "VIS-2 widget set \"Liebherr\": tile with live values and a dialog to control the appliance\nown adapter icon",
                 "de": "VIS-2-Widget-Set „Liebherr“: Kachel mit Live-Werten und Pop-up zur Steuerung des Geräts\neigenes Adapter-Icon",

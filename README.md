@@ -149,7 +149,7 @@ from other Liebherr adapters.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
-### **WORK IN PROGRESS**
+### 0.2.1 (2026-10-24)
 * (Sven-83) widget files with short names (long federation chunk names could break checkouts on Windows)
 * (Sven-83) ESLint for the widget set, CI checks that the committed widgets match the sources
 * (Sven-83) integration test against a simulated HomeAPI, coverage report, npm audit in CI

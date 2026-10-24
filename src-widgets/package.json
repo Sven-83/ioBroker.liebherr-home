@@ -1,7 +1,7 @@
 {
     "name": "iobroker.liebherr-home-widgets",
     "private": true,
-    "version": "0.2.0",
+    "version": "0.2.1",
     "description": "VIS-2 widget set of ioBroker.liebherr-home (built into ../widgets/liebherr-home)",
     "license": "MIT",
     "scripts": {
