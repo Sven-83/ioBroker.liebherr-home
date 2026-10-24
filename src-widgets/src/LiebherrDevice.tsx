@@ -24,10 +24,8 @@ import {
     stepValue,
     subscribedIds,
     type Chip,
-    type ChannelObjectLike,
     type DeviceLayout,
     type ModeControl,
-    type StateObjectLike,
     type ValueLike,
     type Zone,
 } from './model';
@@ -122,6 +120,7 @@ export default class LiebherrDevice extends (window.visRxWidget as typeof VisRxW
     }
 
     // Do not delete: VIS-2 reads the widget configuration through the instance
+    // eslint-disable-next-line class-methods-use-this
     getWidgetInfo(): RxWidgetInfo {
         return LiebherrDevice.getWidgetInfo();
     }
@@ -212,11 +211,7 @@ export default class LiebherrDevice extends (window.visRxWidget as typeof VisRxW
             if (generation !== this.loadGeneration) {
                 return;
             }
-            const layout = buildLayout(
-                device,
-                Object.values(states) as unknown as StateObjectLike[],
-                Object.values(channels) as unknown as ChannelObjectLike[],
-            );
+            const layout = buildLayout(device, Object.values(states), Object.values(channels));
             if (!layout.zones.length && !layout.switches.length) {
                 this.setState({ notFound: true });
                 return;
@@ -266,7 +261,7 @@ export default class LiebherrDevice extends (window.visRxWidget as typeof VisRxW
         if (this.props.editMode) {
             return;
         }
-        this.props.context.setValue(id, value as string | number | boolean | null);
+        this.props.context.setValue(id, value);
         this.setState(prev => ({ lhPending: { ...prev.lhPending, [id]: value }, lhUnconfirmed: false }));
         this.clearAckTimer(id);
         this.ackTimers.set(
@@ -355,7 +350,7 @@ export default class LiebherrDevice extends (window.visRxWidget as typeof VisRxW
             : base;
     }
 
-    private agoText(ts: unknown): string {
+    private static agoText(ts: unknown): string {
         if (typeof ts !== 'number' || !ts) {
             return '–';
         }
@@ -544,7 +539,7 @@ export default class LiebherrDevice extends (window.visRxWidget as typeof VisRxW
                             reachable === false ? 'link_offline' : realtime === true ? 'link_realtime' : 'link_polling',
                         ),
                     )}
-                    {status(LiebherrDevice.t('status_last'), this.agoText(lhAcked[layout.lastUpdateId]))}
+                    {status(LiebherrDevice.t('status_last'), LiebherrDevice.agoText(lhAcked[layout.lastUpdateId]))}
                 </div>
             </Dialog>
         );

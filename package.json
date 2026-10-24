@@ -71,7 +71,8 @@
     "translate": "translate-adapter",
     "release": "release-script",
     "dev-server": "dev-server",
-    "build:widgets": "node tools/build-widgets.mjs"
+    "build:widgets": "node tools/build-widgets.mjs",
+    "lint:widgets": "npm --prefix src-widgets run lint"
   },
   "bugs": {
     "url": "https://github.com/Sven-83/ioBroker.liebherr-home/issues"
