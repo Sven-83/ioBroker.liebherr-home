@@ -53,6 +53,13 @@ jobs:
         run: |
           git add --intent-to-add widgets
           git diff --exit-code --stat -- widgets || (echo "::error::widgets/ is outdated, run npm run build:widgets and commit the result" && exit 1)
+      - name: Upload the fresh build for comparison
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: widgets-ci-build
+          path: widgets/
+          include-hidden-files: true
 
   # Runs adapter tests on all supported node versions and OSes
   adapter-tests:
