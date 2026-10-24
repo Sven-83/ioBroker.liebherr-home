@@ -34,6 +34,20 @@ jobs:
           type-checking: true
           lint: true
 
+  # Fails on critical advisories in runtime dependencies (high: node-forge via adapter-core, see audit N3)
+  audit:
+    if: contains(github.event.head_commit.message, '[skip ci]') == false
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24.x'
+      - run: npm audit --omit=dev --audit-level=critical
+      - run: npm audit --omit=dev --audit-level=critical --prefix src-widgets
+
   # Lints the VIS-2 widget set and checks that the committed widgets/ matches a fresh build
   widgets:
     if: contains(github.event.head_commit.message, '[skip ci]') == false
