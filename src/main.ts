@@ -15,7 +15,7 @@ import {
 import { SseStream, type Scheduler } from './lib/api/sse';
 import { CommandHandler } from './lib/model/commands';
 import { DeviceStore } from './lib/model/device-store';
-import { POLL_DEFAULT_S, pollIntervalSeconds } from './lib/util/config';
+import { POLL_DEFAULT_S, TEST_BASE_URL_ENV, pollIntervalSeconds, testBaseUrl } from './lib/util/config';
 import { createSalt, isValidSalt } from './lib/util/device-key';
 import { FailureLog, formatDuration } from './lib/util/failure-log';
 
@@ -79,7 +79,11 @@ class LiebherrHome extends utils.Adapter {
         }
 
         this.pollSeconds = pollIntervalSeconds(this.config.pollInterval);
-        this.client = new HomeApiClient(apiKey);
+        const baseUrl = testBaseUrl(process.env[TEST_BASE_URL_ENV]);
+        if (baseUrl) {
+            this.log.warn(`Using the test API at ${baseUrl} instead of the Liebherr cloud`);
+        }
+        this.client = new HomeApiClient(apiKey, { baseUrl });
         this.store = new DeviceStore(
             {
                 // late stream events and readbacks must not touch the databases after onUnload

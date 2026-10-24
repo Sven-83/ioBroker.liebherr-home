@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { POLL_DEFAULT_S, pollIntervalSeconds } from './config';
+import { POLL_DEFAULT_S, pollIntervalSeconds, testBaseUrl } from './config';
 import { createSalt, deviceKey, isValidSalt } from './device-key';
 import { FailureLog, formatDuration } from './failure-log';
 import { DEVICE_ID_PATTERN, redact, stripLineBreaks } from './redact';
@@ -86,5 +86,16 @@ describe('util/config', () => {
         expect(pollIntervalSeconds(undefined)).to.equal(POLL_DEFAULT_S);
         expect(pollIntervalSeconds('abc')).to.equal(POLL_DEFAULT_S);
         expect(pollIntervalSeconds(0)).to.equal(POLL_DEFAULT_S);
+    });
+
+    it('accepts only loopback http as test base URL', () => {
+        expect(testBaseUrl('http://127.0.0.1:34567')).to.equal('http://127.0.0.1:34567');
+        expect(testBaseUrl(undefined)).to.equal(undefined);
+        expect(testBaseUrl('')).to.equal(undefined);
+        expect(testBaseUrl('https://127.0.0.1:34567')).to.equal(undefined);
+        expect(testBaseUrl('http://localhost:34567')).to.equal(undefined);
+        expect(testBaseUrl('http://127.0.0.1.example.com:80')).to.equal(undefined);
+        expect(testBaseUrl('http://127.0.0.1:80@attacker')).to.equal(undefined);
+        expect(testBaseUrl('http://127.0.0.1:80/path')).to.equal(undefined);
     });
 });

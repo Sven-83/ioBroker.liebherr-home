@@ -21,7 +21,9 @@ __export(config_exports, {
   POLL_DEFAULT_S: () => POLL_DEFAULT_S,
   POLL_MAX_S: () => POLL_MAX_S,
   POLL_MIN_S: () => POLL_MIN_S,
-  pollIntervalSeconds: () => pollIntervalSeconds
+  TEST_BASE_URL_ENV: () => TEST_BASE_URL_ENV,
+  pollIntervalSeconds: () => pollIntervalSeconds,
+  testBaseUrl: () => testBaseUrl
 });
 module.exports = __toCommonJS(config_exports);
 const POLL_DEFAULT_S = 300;
@@ -34,11 +36,17 @@ function pollIntervalSeconds(value) {
   }
   return Math.min(Math.max(seconds, POLL_MIN_S), POLL_MAX_S);
 }
+const TEST_BASE_URL_ENV = "LIEBHERR_HOME_TEST_BASE_URL";
+function testBaseUrl(value) {
+  return value && /^http:\/\/127\.0\.0\.1:\d{1,5}$/.test(value) ? value : void 0;
+}
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   POLL_DEFAULT_S,
   POLL_MAX_S,
   POLL_MIN_S,
-  pollIntervalSeconds
+  TEST_BASE_URL_ENV,
+  pollIntervalSeconds,
+  testBaseUrl
 });
 //# sourceMappingURL=config.js.map

@@ -19,3 +19,16 @@ export function pollIntervalSeconds(value: unknown): number {
     }
     return Math.min(Math.max(seconds, POLL_MIN_S), POLL_MAX_S);
 }
+
+/** Environment variable that points the client to a local fake cloud (integration test only) */
+export const TEST_BASE_URL_ENV = 'LIEBHERR_HOME_TEST_BASE_URL';
+
+/**
+ * Base URL for the integration test. Only plain http on the loopback address is accepted,
+ * so the variable can never send the API key to another host.
+ *
+ * @param value - Value of the environment variable
+ */
+export function testBaseUrl(value: string | undefined): string | undefined {
+    return value && /^http:\/\/127\.0\.0\.1:\d{1,5}$/.test(value) ? value : undefined;
+}

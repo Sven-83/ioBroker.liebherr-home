@@ -150,6 +150,7 @@ from other Liebherr adapters.
 ### **WORK IN PROGRESS**
 * (Sven-83) widget files with short names (long federation chunk names could break checkouts on Windows)
 * (Sven-83) ESLint for the widget set, CI checks that the committed widgets match the sources
+* (Sven-83) integration test against a simulated HomeAPI, coverage report, npm audit in CI
 
 ### 0.2.0 (2026-10-23)
 * (Sven-83) VIS-2 widget set "Liebherr": tile with live values and a dialog to control the appliance

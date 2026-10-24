@@ -80,7 +80,11 @@ class LiebherrHome extends utils.Adapter {
       return;
     }
     this.pollSeconds = (0, import_config.pollIntervalSeconds)(this.config.pollInterval);
-    this.client = new import_client.HomeApiClient(apiKey);
+    const baseUrl = (0, import_config.testBaseUrl)(process.env[import_config.TEST_BASE_URL_ENV]);
+    if (baseUrl) {
+      this.log.warn(`Using the test API at ${baseUrl} instead of the Liebherr cloud`);
+    }
+    this.client = new import_client.HomeApiClient(apiKey, { baseUrl });
     this.store = new import_device_store.DeviceStore(
       {
         // late stream events and readbacks must not touch the databases after onUnload
