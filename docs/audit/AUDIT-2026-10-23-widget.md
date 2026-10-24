@@ -12,7 +12,7 @@ Geprüft: `src-widgets/` (Quellen), `widgets/liebherr-home/` (Build), `tools/bui
 | 🔴 Kritisch | 0 |
 | 🟠 Hoch | 0 |
 | 🟡 Mittel | 1 (✅ erledigt) |
-| 🔵 Niedrig | 3 |
+| 🔵 Niedrig | 3 (2 ✅ erledigt) |
 
 Das Widget hat keine eigene Netzwerkverbindung, lädt nichts aus dem Internet und rendert alle Werte als Text (React).
 Es schreibt nur über `context.setValue` in beschreibbare States des gewählten Geräteordners.
@@ -42,14 +42,22 @@ Gerät ohne Adapter (`liebherr-home.1.fridge_test` im dev-server) geprüft; dabe
 11 × „high“ über `node-forge` (Abhängigkeit von `@iobroker/gui-components`), nur Entwicklungsabhängigkeit für Typen,
 nicht im Bundle. `npm audit --omit=dev`: 0. Mit gui-components-Update erneut prüfen.
 
-### WN2 – Kein ESLint für `src-widgets/`
+### WN2 – Kein ESLint für `src-widgets/` – ✅ erledigt
 Geprüft wird mit `tsc` (strict) und Prettier; die Root-ESLint-Konfiguration ignoriert `src-widgets/`.
 Eine React-ESLint-Konfiguration kann später ergänzt werden.
+**Erledigt 2026-10-24:** `src-widgets/eslint.config.mjs` (ioBroker-Config + `reactConfig`, typgeprüft),
+`npm run lint:widgets` mit `--max-warnings 0`. Ohne `jsdoc/require-jsdoc`/`require-param` (typisierte Props und
+Interface-Felder). Gefunden und behoben: 3 unnötige Type-Assertions, 1 Methode ohne `this` (jetzt `static`).
 
-### WN3 – Build-Ausgabe wird nicht in CI gegengeprüft
+### WN3 – Build-Ausgabe wird nicht in CI gegengeprüft – ✅ erledigt
 `widgets/liebherr-home/` ist committed (Installation von GitHub). CI baut sie nicht nach; ein vergessenes
 `npm run build:widgets` fiele nicht auf. Der Build ist reproduzierbar (gleiche Quellen → byte-gleiche Ausgabe, geprüft).
 Möglich: CI-Schritt „build:widgets + git diff --exit-code“.
+**Erledigt 2026-10-24:** CI-Job `widgets` (lint:widgets, build:widgets, `git diff --exit-code -- widgets` inkl. neuer
+Dateien). Reproduzierbarkeit zusätzlich in einem Klon an anderem Pfad geprüft (byte-gleich).
+Nebenbefund: Die Module-Federation-Chunks hießen nach ihrem virtuellen Modul (bis 143 Zeichen) – ein Klon in einen
+tieferen Windows-Pfad scheiterte an MAX_PATH. Jetzt `assets/mf-[hash].js` (`vite.config.mts`); Widget danach in
+VIS-2 (dev-server) geladen, Kacheln mit Live-Werten, keine Konsolenfehler.
 
 ## Qualität (ISO 25010)
 

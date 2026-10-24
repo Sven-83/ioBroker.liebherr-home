@@ -48,6 +48,11 @@ export default {
                 }
                 warn(warning);
             },
+            output: {
+                // federation chunks are named after their virtual module (> 140 chars), too long for Windows paths
+                chunkFileNames: (chunk: { name: string }): string =>
+                    chunk.name.startsWith('_virtual_mf') ? 'assets/mf-[hash].js' : 'assets/[name]-[hash].js',
+            },
         },
     },
 };

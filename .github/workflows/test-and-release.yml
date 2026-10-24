@@ -34,6 +34,26 @@ jobs:
           type-checking: true
           lint: true
 
+  # Lints the VIS-2 widget set and checks that the committed widgets/ matches a fresh build
+  widgets:
+    if: contains(github.event.head_commit.message, '[skip ci]') == false
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24.x'
+      - run: npm ci
+      - run: npm ci --prefix src-widgets
+      - run: npm run lint:widgets
+      - run: npm run build:widgets
+      - name: widgets/ is up to date
+        run: |
+          git add --intent-to-add widgets
+          git diff --exit-code --stat -- widgets || (echo "::error::widgets/ is outdated, run npm run build:widgets and commit the result" && exit 1)
+
   # Runs adapter tests on all supported node versions and OSes
   adapter-tests:
     if: contains(github.event.head_commit.message, '[skip ci]') == false
