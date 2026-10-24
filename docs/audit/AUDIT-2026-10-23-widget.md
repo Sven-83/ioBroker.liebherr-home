@@ -54,7 +54,9 @@ Interface-Felder). Gefunden und behoben: 3 unnötige Type-Assertions, 1 Methode 
 `npm run build:widgets` fiele nicht auf. Der Build ist reproduzierbar (gleiche Quellen → byte-gleiche Ausgabe, geprüft).
 Möglich: CI-Schritt „build:widgets + git diff --exit-code“.
 **Erledigt 2026-10-24:** CI-Job `widgets` (lint:widgets, build:widgets, `git diff --exit-code -- widgets` inkl. neuer
-Dateien). Reproduzierbarkeit zusätzlich in einem Klon an anderem Pfad geprüft (byte-gleich).
+Dateien). Reproduzierbarkeit zusätzlich in einem Klon an anderem Pfad geprüft (byte-gleich). Der Job läuft auf
+Windows: Unter Linux teilt rolldown denselben Code anders auf die Chunks auf (andere Dateinamen und Hashes); `widgets/`
+wird daher immer unter Windows gebaut.
 Nebenbefund: Die Module-Federation-Chunks hießen nach ihrem virtuellen Modul (bis 143 Zeichen) – ein Klon in einen
 tieferen Windows-Pfad scheiterte an MAX_PATH. Jetzt `assets/mf-[hash].js` (`vite.config.mts`); Widget danach in
 VIS-2 (dev-server) geladen, Kacheln mit Live-Werten, keine Konsolenfehler.

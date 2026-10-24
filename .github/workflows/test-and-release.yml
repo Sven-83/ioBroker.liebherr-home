@@ -38,7 +38,8 @@ jobs:
   widgets:
     if: contains(github.event.head_commit.message, '[skip ci]') == false
 
-    runs-on: ubuntu-latest
+    # widgets/ is built on Windows; rolldown splits the chunks differently on Linux (same code, other file names)
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v5
@@ -50,6 +51,7 @@ jobs:
       - run: npm run lint:widgets
       - run: npm run build:widgets
       - name: widgets/ is up to date
+        shell: bash
         run: |
           git add --intent-to-add widgets
           git diff --exit-code --stat -- widgets || (echo "::error::widgets/ is outdated, run npm run build:widgets and commit the result" && exit 1)
