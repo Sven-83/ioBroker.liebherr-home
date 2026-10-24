@@ -160,19 +160,23 @@ class DeviceStore {
           `Unknown control type "${(0, import_redact.stripLineBreaks)(mapped.unknownType).slice(0, 50)}" - stored as raw JSON`
         );
       }
-      for (const channel of mapped.channels) {
-        await this.ensure(`${key}.${channel.id}`, {
-          type: "channel",
-          common: { name: channel.name },
-          native: {}
-        });
-      }
-      for (const state of mapped.states) {
-        const id = `${key}.${state.id}`;
-        await this.ensure(id, { type: "state", common: state.common, native: state.native });
-        this.infos.set(id, { common: state.common, native: state.native });
-        await this.write(id, state.value);
-      }
+      await Promise.all(
+        mapped.channels.map(
+          (channel) => this.ensure(`${key}.${channel.id}`, {
+            type: "channel",
+            common: { name: channel.name },
+            native: {}
+          })
+        )
+      );
+      await Promise.all(
+        mapped.states.map(async (state) => {
+          const id = `${key}.${state.id}`;
+          await this.ensure(id, { type: "state", common: state.common, native: state.native });
+          this.infos.set(id, { common: state.common, native: state.native });
+          await this.write(id, state.value);
+        })
+      );
     }
     await this.sink.setValue(`${key}.info.lastUpdate`, Date.now());
   }
@@ -202,29 +206,27 @@ class DeviceStore {
       read: true,
       write: false
     });
-    await this.ensure(`${key}.info.name`, {
-      type: "state",
-      common: text("Name in the SmartDevice app"),
-      native: {}
-    });
-    await this.ensure(`${key}.info.model`, { type: "state", common: text("Model"), native: {} });
-    await this.ensure(`${key}.info.type`, { type: "state", common: text("Device type"), native: {} });
-    await this.ensure(`${key}.info.reachable`, {
-      type: "state",
-      common: {
-        name: "Reachable via the cloud",
-        type: "boolean",
-        role: "indicator.reachable",
-        read: true,
-        write: false
-      },
-      native: {}
-    });
-    await this.ensure(`${key}.info.lastUpdate`, {
-      type: "state",
-      common: { name: "Last update", type: "number", role: "value.time", read: true, write: false },
-      native: {}
-    });
+    await Promise.all([
+      this.ensure(`${key}.info.name`, { type: "state", common: text("Name in the SmartDevice app"), native: {} }),
+      this.ensure(`${key}.info.model`, { type: "state", common: text("Model"), native: {} }),
+      this.ensure(`${key}.info.type`, { type: "state", common: text("Device type"), native: {} }),
+      this.ensure(`${key}.info.reachable`, {
+        type: "state",
+        common: {
+          name: "Reachable via the cloud",
+          type: "boolean",
+          role: "indicator.reachable",
+          read: true,
+          write: false
+        },
+        native: {}
+      }),
+      this.ensure(`${key}.info.lastUpdate`, {
+        type: "state",
+        common: { name: "Last update", type: "number", role: "value.time", read: true, write: false },
+        native: {}
+      })
+    ]);
   }
   /**
    * @param id - Object ID relative to the instance
