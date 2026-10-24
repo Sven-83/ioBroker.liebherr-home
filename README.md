@@ -110,6 +110,7 @@ to pick it up).
 
 The **tile** shows the current and target temperature, chips for active functions and a status dot
 (green = real time, amber = command pending or polling only, red = appliance not reachable).
+It is designed for 280 × 220 px and scales with the widget size, so it can simply be resized in the editor.
 A click opens the **dialog**: target temperature with −/+ within the limits of the appliance, HydroBreeze /
 IceMaker / BioFresh modes as buttons, switches for SuperCool, SuperFrost, party and night mode, and a status line.
 Only buttons, no sliders. Every press is sent right away; the dialog waits for the confirmation of the adapter and
@@ -149,6 +150,9 @@ from other Liebherr adapters.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
+### 0.2.2 (2026-10-25)
+* (Sven-83) the widget tile scales with its size in VIS-2 (smaller or larger tiles)
+
 ### 0.2.1 (2026-10-24)
 * (Sven-83) widget files with short names (long federation chunk names could break checkouts on Windows)
 * (Sven-83) ESLint for the widget set, CI checks that the committed widgets match the sources

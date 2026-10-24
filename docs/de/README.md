@@ -104,6 +104,7 @@ dafür einmal neu.
 
 Die **Kachel** zeigt Ist- und Solltemperatur, Chips für aktive Funktionen und einen Statuspunkt
 (grün = Echtzeit, amber = Befehl offen oder nur Polling, rot = Gerät nicht erreichbar).
+Sie ist für 280 × 220 px ausgelegt und skaliert mit der Widget-Größe; im Editor einfach größer oder kleiner ziehen.
 Ein Klick öffnet das **Pop-up**: Solltemperatur mit −/+ in den Grenzen des Geräts, HydroBreeze-, IceMaker- und
 BioFresh-Modi als Tasten, Schalter für SuperCool, SuperFrost, Party- und Nachtmodus sowie eine Statuszeile.
 Nur Tasten, keine Regler. Jeder Tastendruck wird sofort gesendet; das Pop-up wartet auf die Bestätigung des Adapters

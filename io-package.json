@@ -1,8 +1,21 @@
 {
     "common": {
         "name": "liebherr-home",
-        "version": "0.2.1",
+        "version": "0.2.2",
         "news": {
+            "0.2.2": {
+                "en": "the widget tile scales with its size in VIS-2",
+                "de": "die Widget-Kachel skaliert mit ihrer Größe in VIS-2",
+                "ru": "плитка виджета масштабируется вместе с её размером в VIS-2",
+                "pt": "o mosaico do widget escala com o seu tamanho no VIS-2",
+                "nl": "de widgettegel schaalt mee met de grootte in VIS-2",
+                "fr": "la tuile du widget s’adapte à sa taille dans VIS-2",
+                "it": "il riquadro del widget si adatta alla sua dimensione in VIS-2",
+                "es": "el mosaico del widget se adapta a su tamaño en VIS-2",
+                "pl": "kafelek widżetu skaluje się wraz z rozmiarem w VIS-2",
+                "uk": "плитка віджета масштабується разом з її розміром у VIS-2",
+                "zh-cn": "小部件磁贴在 VIS-2 中随尺寸缩放"
+            },
             "0.2.1": {
                 "en": "shorter widget file names (long names could break installations on Windows)\nfaster creation of the objects\nmore tests",
                 "de": "kürzere Dateinamen im Widget (lange Namen konnten Installationen unter Windows stören)\nObjekte werden schneller angelegt\nmehr Tests",
