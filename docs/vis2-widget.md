@@ -80,6 +80,9 @@ und `common.write=true` hat. Keine Modell-Sonderlogik, kein `info.capabilities`-
 | Statuspunkt | grün = erreichbar + Echtzeit · amber = Befehl offen oder nur Polling · rot = Gerät nicht erreichbar |
 
 Die Kachel ist ein `<button>`; Klick öffnet den Dialog. Im VIS-Editor öffnet sie nicht.
+Größe: ausgelegt für 280 × 220 px (`visDefaultStyle`); alle Maße skalieren mit min(Breite/280, Höhe/220), begrenzt auf
+0,4 … 2 (ResizeObserver auf die Layout-Größe, unabhängig vom Editor-Zoom; keine Container-Queries wegen älterer
+Wandtablet-WebViews). Der Dialog skaliert nicht.
 
 ### 5.2 Dialog
 
