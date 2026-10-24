@@ -157,5 +157,96 @@ tests.integration(path.join(__dirname, '..'), {
                 expect(cloud.openStreams()).to.equal(0);
             });
         });
+
+        // Controls known only from the OpenAPI spec (audit N10) - no real hardware behind this
+        suite('Spec-only controls', getHarness => {
+            let harness;
+            let cloud;
+            let key;
+            const objectOf = id => harness.objects.getObjectAsync(`${NS}.${key}.${id}`);
+            const stateOf = id => harness.states.getState(`${NS}.${key}.${id}`);
+
+            before(async function () {
+                this.timeout(60_000);
+                harness = getHarness();
+                cloud = await startFakeCloud({ spec: true });
+                await harness.changeAdapterConfig('liebherr-home', {
+                    native: { apiKey: cloud.apiKey, deviceSalt: SALT, useSse: true, allowAutoDoor: true },
+                });
+                await harness.startAdapterAndWait(false, { LIEBHERR_HOME_TEST_BASE_URL: cloud.baseUrl });
+            });
+
+            after(async () => {
+                await cloud?.close();
+            });
+
+            /**
+             * Sends a command and waits for the confirmation.
+             *
+             * @param {string} id - State ID below the device
+             * @param {ioBroker.StateValue} val - New value
+             */
+            async function command(id, val) {
+                const sent = cloud.commands.length;
+                await harness.states.setState(`${NS}.${key}.${id}`, { val, ack: false });
+                await waitFor(() => cloud.commands.length > sent, `POST for ${id}`);
+                await waitFor(async () => {
+                    const state = await stateOf(id);
+                    return state?.ack && state.val === val;
+                }, `ack for ${id}`);
+                return cloud.commands[sent];
+            }
+
+            it('creates the objects of all spec controls', async function () {
+                this.timeout(30_000);
+                await waitFor(async () => (await harness.states.getState(`${NS}.info.realtime`))?.val === true, 'realtime');
+                const ids = await harness.dbConnection.getStateIDs(`${NS}.*`);
+                key = ids.find(id => /\.combi_[0-9a-f]{8}\./.test(id))?.split('.')[2];
+                expect(key, 'combi device').to.be.a('string');
+
+                const setpoint = await objectOf('zones.0.setpoint');
+                expect(setpoint.common).to.include({ unit: '°F', min: 34, max: 46, write: true });
+                expect((await stateOf('zones.0.temperature')).val).to.equal(38);
+                expect(Object.keys((await objectOf('zones.1.icemaker')).common.states)).to.deep.equal([
+                    'OFF',
+                    'ON',
+                    'MAX_ICE',
+                ]);
+                expect(Object.keys((await objectOf('zones.2.biofreshplus')).common.states)).to.deep.equal([
+                    'ZERO_ZERO',
+                    'ZERO_MINUS_TWO',
+                    'MINUS_TWO_ZERO',
+                ]);
+                expect((await objectOf('zones.0.autodoor')).common.write).to.equal(false);
+                expect((await stateOf('zones.0.autodoor')).val).to.equal('CLOSED');
+                expect((await objectOf('zones.0.autodoorCommand')).common.write).to.equal(true);
+                expect((await objectOf('functions.presentationlight')).common).to.include({ min: 0, max: 5 });
+                expect((await stateOf('functions.presentationlight')).val).to.equal(1);
+            });
+
+            it('sends the request bodies of the spec', async function () {
+                this.timeout(90_000);
+                expect(await command('zones.0.setpoint', 40)).to.deep.include({
+                    control: 'temperature',
+                    body: { zoneId: 0, target: 40, unit: '°F' },
+                });
+                expect(await command('zones.1.icemaker', 'MAX_ICE')).to.deep.include({
+                    control: 'icemaker',
+                    body: { zoneId: 1, iceMakerMode: 'MAX_ICE' },
+                });
+                expect(await command('zones.2.biofreshplus', 'ZERO_MINUS_TWO')).to.deep.include({
+                    control: 'biofreshplus',
+                    body: { zoneId: 2, bioFreshPlusMode: 'ZERO_MINUS_TWO' },
+                });
+                expect(await command('functions.presentationlight', 3)).to.deep.include({
+                    control: 'presentationlight',
+                    body: { target: 3 },
+                });
+                expect(await command('zones.0.autodoorCommand', true)).to.deep.include({
+                    control: 'autodoor',
+                    body: { zoneId: 0, value: true },
+                });
+            });
+        });
     },
 });

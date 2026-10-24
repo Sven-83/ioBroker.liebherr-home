@@ -125,4 +125,5 @@ mitgeliefert, es wird nichts aus dem Internet geladen.
 - Bottle-Timer und Urlaubsmodus gibt es in der SmartDevice-App, aber nicht in der HomeAPI; der Adapter kann sie daher nicht anbieten.
 - Getestet mit einem Kühlschrank (IRBbi 4170) und einem Gefrierschrank (GNP 3755). IceMaker, BioFresh-Plus,
   Präsentationslicht, automatische Tür und °F-Geräte sind nach der API-Spezifikation umgesetzt, aber nicht an echten
-  Geräten getestet.
+  Geräten getestet. Ein Integrationstest prüft sie gegen eine simulierte API (Objekte, Befehle, Bestätigung).
+  Rückmeldungen von Besitzern solcher Geräte sind willkommen.

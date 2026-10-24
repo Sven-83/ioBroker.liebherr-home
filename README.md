@@ -131,6 +131,8 @@ nothing is loaded from the internet.
 - Bottle timer and holiday mode exist in the SmartDevice app but not in the HomeAPI, so the adapter cannot offer them.
 - Tested with a fridge (IRBbi 4170) and a freezer (GNP 3755). IceMaker, BioFresh-Plus, presentation light,
   automatic door and °F appliances are implemented from the API specification but not tested on real appliances.
+  An integration test checks them against a simulated API (objects, request bodies, confirmation). Feedback from
+  owners of such appliances is welcome.
 
 ---
 
@@ -151,6 +153,7 @@ from other Liebherr adapters.
 * (Sven-83) widget files with short names (long federation chunk names could break checkouts on Windows)
 * (Sven-83) ESLint for the widget set, CI checks that the committed widgets match the sources
 * (Sven-83) integration test against a simulated HomeAPI, coverage report, npm audit in CI
+* (Sven-83) objects of a control are created in parallel; integration test for the controls known only from the specification
 
 ### 0.2.0 (2026-10-23)
 * (Sven-83) VIS-2 widget set "Liebherr": tile with live values and a dialog to control the appliance

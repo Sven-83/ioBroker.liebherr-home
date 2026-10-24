@@ -1,0 +1,44 @@
+[
+    {
+        "type": "TemperatureControl",
+        "name": "temperature",
+        "zoneId": 0,
+        "zonePosition": "top",
+        "value": 38,
+        "target": 38,
+        "min": 34,
+        "max": 46,
+        "unit": "°F",
+        "setTemperatureSteps": [],
+        "setTemperatureStepsEnabled": false
+    },
+    {
+        "type": "IceMakerControl",
+        "name": "icemaker",
+        "zoneId": 1,
+        "zonePosition": "bottom",
+        "iceMakerMode": "OFF",
+        "hasMaxIce": true
+    },
+    {
+        "type": "BioFreshPlusControl",
+        "name": "biofreshplus",
+        "zoneId": 2,
+        "zonePosition": "middle",
+        "currentMode": "ZERO_ZERO",
+        "supportedModes": ["ZERO_ZERO", "ZERO_MINUS_TWO", "MINUS_TWO_ZERO"]
+    },
+    {
+        "type": "AutoDoorControl",
+        "name": "autodoor",
+        "zoneId": 0,
+        "zonePosition": "top",
+        "value": "CLOSED"
+    },
+    {
+        "type": "PresentationLightControl",
+        "name": "PresentationLight",
+        "value": 1,
+        "max": 5
+    }
+]

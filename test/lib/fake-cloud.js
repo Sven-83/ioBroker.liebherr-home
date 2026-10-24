@@ -2,7 +2,8 @@
  * Simulated Liebherr HomeAPI for the integration test (audit N8).
  * Answers like the real API (docs/api-abgleich.md): device list, controls, readback, commands (204)
  * and the SSE stream with a full first event. Data from test/fixtures, with the test serials the
- * pre-commit hook allows.
+ * pre-commit hook allows. With { spec: true } it serves one synthetic device with the controls that
+ * exist only in the OpenAPI spec (test/lib/spec-device.json, audit N10).
  */
 'use strict';
 
@@ -15,12 +16,57 @@ const load = name => JSON.parse(require('node:fs').readFileSync(path.join(fixtur
 const API_KEY = 'integration-test-key-0123456789';
 const DEVICE_IDS = { 'DEVICE-1': '34.916.716.7', 'DEVICE-2': '00.000.000.0' };
 
-/** Starts the fake cloud on a free loopback port */
-async function startFakeCloud() {
-    const devices = load('devices.json').map(d => ({ ...d, deviceId: DEVICE_IDS[d.deviceId] }));
+/** Synthetic combi appliance, nickname and model are made up */
+const SPEC_DEVICE = { deviceId: '34.916.716.7', deviceName: 'Spec 1', deviceType: 'COMBI', nickname: 'Spec device' };
+
+/**
+ * Applies a command body to the control, as the device would report it afterwards.
+ *
+ * @param {Record<string, unknown>} control - Control from the controls list
+ * @param {string} name - Control name from the URL
+ * @param {Record<string, unknown>} body - Request body
+ */
+function applyCommand(control, name, body) {
+    switch (name) {
+        case 'temperature':
+            control.target = body.target;
+            break;
+        case 'icemaker':
+            control.iceMakerMode = body.iceMakerMode;
+            break;
+        case 'biofreshplus':
+            control.currentMode = body.bioFreshPlusMode;
+            break;
+        case 'presentationlight':
+            control.value = body.target;
+            break;
+        case 'autodoor':
+            control.value = body.value ? 'OPEN' : 'CLOSED';
+            break;
+        default:
+            control.value = body.value;
+    }
+}
+
+/**
+ * Starts the fake cloud on a free loopback port
+ *
+ * @param {{ spec?: boolean }} [options]
+ */
+async function startFakeCloud(options = {}) {
+    const devices = options.spec
+        ? [SPEC_DEVICE]
+        : load('devices.json').map(d => ({ ...d, deviceId: DEVICE_IDS[d.deviceId] }));
     /** deviceId -> current controls */
     const controls = new Map(
-        Object.entries(DEVICE_IDS).map(([fixture, id]) => [id, load(`${fixture.toLowerCase()}.controls.json`)]),
+        options.spec
+            ? [
+                  [
+                      SPEC_DEVICE.deviceId,
+                      JSON.parse(require('node:fs').readFileSync(path.join(__dirname, 'spec-device.json'), 'utf8')),
+                  ],
+              ]
+            : Object.entries(DEVICE_IDS).map(([fixture, id]) => [id, load(`${fixture.toLowerCase()}.controls.json`)]),
     );
     /** deviceId -> open SSE responses */
     const streams = new Map();
@@ -64,7 +110,8 @@ async function startFakeCloud() {
             return;
         }
         const zoneId = url.searchParams.has('zoneId') ? Number(url.searchParams.get('zoneId')) : undefined;
-        const matches = c => c.name === name && (zoneId === undefined || c.zoneId === zoneId);
+        // control names are lower case in the URL ("PresentationLight" in the answer)
+        const matches = c => c.name.toLowerCase() === name && (zoneId === undefined || c.zoneId === zoneId);
         if (req.method === 'GET') {
             json(200, list.filter(matches));
             return;
@@ -75,12 +122,12 @@ async function startFakeCloud() {
             req.on('end', () => {
                 const body = JSON.parse(raw);
                 commands.push({ deviceId: id, control: name, body });
-                const target = list.find(c => c.name === name && c.zoneId === body.zoneId);
-                if (target && name === 'temperature') {
-                    target.target = body.target;
-                } else if (target && 'value' in body) {
-                    target.value = body.value;
+                const target = list.find(c => c.name.toLowerCase() === name && c.zoneId === body.zoneId);
+                if (!target) {
+                    json(422, { status: 422, message: 'Function not available', error: 'Unprocessable Entity' });
+                    return;
                 }
+                applyCommand(target, name, body);
                 res.writeHead(204).end();
             });
             return;
@@ -94,7 +141,7 @@ async function startFakeCloud() {
     return {
         baseUrl: `http://127.0.0.1:${port}`,
         apiKey: API_KEY,
-        deviceIds: Object.values(DEVICE_IDS),
+        deviceIds: devices.map(d => d.deviceId),
         commands,
         /** Changes controls of a device and sends them as partial SSE event, like the real API */
         push(deviceId, changes) {
