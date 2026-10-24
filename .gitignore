@@ -22,3 +22,6 @@ admin/i18n/*/flat.txt
 
 # widget build intermediate (result goes to widgets/)
 src-widgets/build/
+
+# coverage report (npm run coverage)
+coverage/
