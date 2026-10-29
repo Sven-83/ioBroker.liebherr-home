@@ -150,6 +150,9 @@ from other Liebherr adapters.
     Placeholder for the next version (at the beginning of the line):
     ### **WORK IN PROGRESS**
 -->
+### **WORK IN PROGRESS**
+* (Sven-83) widget variant "compact" (about 240 x 88) for dashboards with small tiles
+
 ### 0.2.2 (2026-10-25)
 * (Sven-83) the widget tile scales with its size in VIS-2 (smaller or larger tiles)
 
