@@ -59,5 +59,8 @@
     "status_last": "Letzte Meldung",
     "ago_s": "vor %s s",
     "ago_min": "vor %s min",
-    "ago_h": "vor %s h"
+    "ago_h": "vor %s h",
+    "variant": "Darstellung",
+    "variant_card": "Karte (280 x 220)",
+    "variant_compact": "Kompakt (ca. 240 x 88)"
 }

@@ -3,14 +3,14 @@ import React from 'react';
 import { colors } from '../theme';
 
 /** Fridge outline (same drawing as the design canvas) */
-export function FridgeIcon({ size = 22 }: { size?: number }): React.JSX.Element {
+export function FridgeIcon({ size = 22, color = colors.cold }: { size?: number; color?: string }): React.JSX.Element {
     return (
         <svg
             width={size}
             height={size}
             viewBox="0 0 24 24"
             fill="none"
-            stroke={colors.cold}
+            stroke={color}
             strokeWidth={1.7}
             strokeLinecap="round"
             aria-hidden="true"
@@ -45,14 +45,14 @@ export function FridgeIcon({ size = 22 }: { size?: number }): React.JSX.Element 
 }
 
 /** Snowflake (freezer) */
-export function FreezerIcon({ size = 22 }: { size?: number }): React.JSX.Element {
+export function FreezerIcon({ size = 22, color = colors.cold }: { size?: number; color?: string }): React.JSX.Element {
     return (
         <svg
             width={size}
             height={size}
             viewBox="0 0 24 24"
             fill="none"
-            stroke={colors.cold}
+            stroke={color}
             strokeWidth={1.7}
             strokeLinecap="round"
             aria-hidden="true"

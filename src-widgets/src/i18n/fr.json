@@ -59,5 +59,8 @@
     "status_last": "Dernière mise à jour",
     "ago_s": "il y a %s s",
     "ago_min": "il y a %s min",
-    "ago_h": "il y a %s h"
+    "ago_h": "il y a %s h",
+    "variant": "Affichage",
+    "variant_card": "Carte (280 x 220)",
+    "variant_compact": "Compact (env. 240 x 88)"
 }

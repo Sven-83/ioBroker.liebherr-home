@@ -14,6 +14,7 @@ import type VisRxWidget from '@iobroker/types-vis-2/visRxWidget';
 import { SectionLabel, Segments, Stepper, ToggleTile } from './components/Controls';
 import { Dialog } from './components/Dialog';
 import { Tile } from './components/Tile';
+import { TileCompact } from './components/TileCompact';
 import {
     SELF_ENDING,
     activeChips,
@@ -39,6 +40,8 @@ interface LiebherrDeviceRxData {
     device: string;
     /** Display name; empty = info.name of the device */
     title: string;
+    /** 'karte' (default, 280 x 220) or 'kompakt' (about 240 x 88, for 88 px tile dashboards) */
+    variante: string;
 }
 
 interface LiebherrDeviceState extends VisRxWidgetState {
@@ -111,6 +114,16 @@ export default class LiebherrDevice extends (window.visRxWidget as typeof VisRxW
                     fields: [
                         { name: 'device', type: 'id', label: 'device' },
                         { name: 'title', type: 'text', label: 'title' },
+                        {
+                            name: 'variante',
+                            type: 'select',
+                            label: 'variant',
+                            options: [
+                                { value: 'karte', label: 'variant_card' },
+                                { value: 'kompakt', label: 'variant_compact' },
+                            ],
+                            default: 'karte',
+                        },
                     ],
                 },
             ],
@@ -576,25 +589,54 @@ export default class LiebherrDevice extends (window.visRxWidget as typeof VisRxW
 
         return (
             <>
-                <Tile
-                    title={title}
-                    icon={iconKind(layout ? lhAcked[layout.typeId] : undefined)}
-                    dot={dot}
-                    dotTitle={dot ? LiebherrDevice.t(`dot_${dot}`) : ''}
-                    current={current}
-                    setpoint={
-                        typeof target === 'number'
-                            ? `${LiebherrDevice.t('setpoint_short')} ${formatDegrees(target, lang)}`
-                            : ''
-                    }
-                    chips={
-                        layout
-                            ? activeChips(layout, shownValues).map(c => ({ ...c, text: LiebherrDevice.chipText(c) }))
-                            : []
-                    }
-                    hint={hint}
-                    onClick={layout && !this.props.editMode ? this.open : undefined}
-                />
+                {this.state.rxData.variante === 'kompakt' ? (
+                    <TileCompact
+                        title={title}
+                        icon={iconKind(layout ? lhAcked[layout.typeId] : undefined)}
+                        dot={dot}
+                        dotTitle={dot ? LiebherrDevice.t(`dot_${dot}`) : ''}
+                        current={current}
+                        setpoint={
+                            typeof target === 'number'
+                                ? `${LiebherrDevice.t('setpoint_short')} ${formatDegrees(target, lang)}`
+                                : ''
+                        }
+                        chips={
+                            layout
+                                ? activeChips(layout, shownValues).map(c => ({
+                                      ...c,
+                                      text: LiebherrDevice.chipText(c),
+                                  }))
+                                : []
+                        }
+                        hint={hint}
+                        onClick={layout && !this.props.editMode ? this.open : undefined}
+                        statusText={LiebherrDevice.t(dot === 'unreachable' ? 'status_unreachable' : 'status_reachable')}
+                    />
+                ) : (
+                    <Tile
+                        title={title}
+                        icon={iconKind(layout ? lhAcked[layout.typeId] : undefined)}
+                        dot={dot}
+                        dotTitle={dot ? LiebherrDevice.t(`dot_${dot}`) : ''}
+                        current={current}
+                        setpoint={
+                            typeof target === 'number'
+                                ? `${LiebherrDevice.t('setpoint_short')} ${formatDegrees(target, lang)}`
+                                : ''
+                        }
+                        chips={
+                            layout
+                                ? activeChips(layout, shownValues).map(c => ({
+                                      ...c,
+                                      text: LiebherrDevice.chipText(c),
+                                  }))
+                                : []
+                        }
+                        hint={hint}
+                        onClick={layout && !this.props.editMode ? this.open : undefined}
+                    />
+                )}
                 {lhOpen && layout && !this.props.editMode ? this.renderDialog(layout, title, lang) : null}
             </>
         );
